@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+
+
 class Node(object):
     def __init__(self):
         self.left = None
@@ -58,10 +62,6 @@ def normalize_data(data):
 
     data['features'] = feature_vectors
     return data
-
-
-import pandas as pd
-import numpy as np
 
 
 def get_housing_data():
