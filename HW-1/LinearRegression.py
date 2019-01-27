@@ -20,14 +20,14 @@ class LinearRegressor(object):
 
 
 def get_housing_data():
-    training_data = pd.read_csv('data/housing/housing_train.txt', delimiter='\\s+', header=None)
+    training_data = pd.read_csv('../data/housing/housing_train.txt', delimiter='\\s+', header=None)
     training_features = np.array(training_data.iloc[:, 0:13])
     ones = np.ones((training_features.shape[0], 1))
     training_features = np.concatenate((ones, training_features), axis=1)
 
     training_labels = np.array(training_data.iloc[:, 13])
 
-    testing_data = pd.read_csv('data/housing/housing_test.txt', delimiter='\\s+', header=None)
+    testing_data = pd.read_csv('../data/housing/housing_test.txt', delimiter='\\s+', header=None)
     testing_features = np.array(testing_data.iloc[:, 0:13])
     ones = np.ones((testing_features.shape[0], 1))
     testing_features = np.concatenate((ones, testing_features), axis=1)
@@ -69,7 +69,7 @@ def predict_housing_prices():
 
 
 def get_spam_data():
-    data = pd.read_csv('data/spam-email/spambase.data', header=None)
+    data = pd.read_csv('../data/spam-email/spambase.data', header=None)
     features = np.array(data.iloc[:, 0:57])
 
     ones = np.ones((features.shape[0], 1))
