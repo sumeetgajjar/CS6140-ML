@@ -1,9 +1,8 @@
 import numpy as np
+import utils
 from regression import LinearRegression
 from regression import RidgeRegression
 from sklearn.metrics import accuracy_score
-
-from src import utils
 
 
 def predict_housing_prices(regression):
