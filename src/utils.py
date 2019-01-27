@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 
+ROOT = '../../'
+
 
 def get_spam_data():
-    data = pd.read_csv('../data/spam-email/spambase.data', header=None)
+    data = pd.read_csv('%sdata/spam-email/spambase.data' % ROOT, header=None)
     features = np.array(data.iloc[:, 0:57])
     labels = np.array(data.iloc[:, 57])
 
@@ -17,11 +19,11 @@ def get_spam_data():
 
 
 def get_housing_data():
-    training_data = pd.read_csv('../data/housing/housing_train.txt', delimiter='\\s+', header=None)
+    training_data = pd.read_csv('%sdata/housing/housing_train.txt' % ROOT, delimiter='\\s+', header=None)
     training_features = np.array(training_data.iloc[:, 0:13])
     training_labels = np.array(training_data.iloc[:, 13])
 
-    testing_data = pd.read_csv('../data/housing/housing_test.txt', delimiter='\\s+', header=None)
+    testing_data = pd.read_csv('%sdata/housing/housing_test.txt' % ROOT, delimiter='\\s+', header=None)
     testing_features = np.array(testing_data.iloc[:, 0:13])
     testing_labels = np.array(testing_data.iloc[:, 13])
 
