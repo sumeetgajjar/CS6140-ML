@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import utils
+from HW_2 import utils
 
 
 class LinearRegression(object):

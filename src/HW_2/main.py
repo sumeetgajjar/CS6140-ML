@@ -1,9 +1,8 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-from . import utils
-from .regression import LinearRegression
-from .regression import RidgeRegression
+from HW_2 import regression
+from HW_2 import utils
 
 
 def predict_housing_prices(regression):
@@ -54,13 +53,13 @@ def predict_spam_labels(regression):
 
 if __name__ == '__main__':
     print("Linear Regression\n")
-    producer = lambda: LinearRegression()
+    producer = lambda: regression.LinearRegression()
     predict_housing_prices(producer)
     predict_spam_labels(producer)
 
     print("\n")
     print("=" * 100, '\n')
     print("Ridge Regression\n")
-    producer = lambda: RidgeRegression(0.034)
+    producer = lambda: regression.RidgeRegression(0.034)
     predict_housing_prices(producer)
     predict_spam_labels(producer)
