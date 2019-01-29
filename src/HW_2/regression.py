@@ -93,7 +93,7 @@ def linear_regression_on_housing_data():
     training_features = utils.prepend_one_to_feature_vectors(training_features)
     testing_features = utils.prepend_one_to_feature_vectors(testing_features)
 
-    model = SGDLinearRegression(0.0002, 800, 1)
+    model = SGDLinearRegression(0.0002, 800, 11)
     # model = BGDLinearRegression(0.0002, 800, 1)
     model.train(training_features, data['training']['prices'])
 
@@ -118,8 +118,8 @@ def linear_regression_on_spambase_data():
     testing_accuracy = []
     label_threshold = 0.413
 
-    for split in splits[:1]:
-        model = SGDLinearRegression(0.006, 40)
+    for split in splits:
+        model = BGDLinearRegression(0.0005, 1000, 1)
         model.train(split['training']['features'], split['training']['labels'])
         training_predictions = model.predict(split['training']['features'])
         training_predictions = [1 if t >= label_threshold else 0 for t in training_predictions]
@@ -141,5 +141,5 @@ def linear_regression_on_spambase_data():
 
 
 if __name__ == '__main__':
-    linear_regression_on_housing_data()
-    # linear_regression_on_spambase_data()
+    # linear_regression_on_housing_data()
+    linear_regression_on_spambase_data()

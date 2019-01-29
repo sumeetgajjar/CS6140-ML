@@ -77,12 +77,13 @@ def normalize_data_using_shift_and_scale(feature_vectors):
     return feature_vectors
 
 
-def k_fold_split(k, data, shuffle=False):
+def k_fold_split(k, data, seed=11, shuffle=False):
     sample_size = data['features'].shape[0]
 
     indices = np.arange(0, sample_size)
 
     if shuffle:
+        np.random.seed(seed)
         np.random.shuffle(indices)
 
     folds = np.array_split(indices, k)

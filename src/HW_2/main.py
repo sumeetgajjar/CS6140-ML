@@ -34,17 +34,17 @@ def predict_housing_prices(regressor):
 
 def predict_spam_labels(regressor):
     data = utils.get_spam_data()
+    data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
     data['features'] = utils.prepend_one_to_feature_vectors(data['features'])
 
-    # _data = utils.normalize_data_using_shift_and_scale(_data)
-    _k = 4
-    _splits = utils.k_fold_split(_k, data, shuffle=True)
+    k = 4
+    splits = utils.k_fold_split(k, data, shuffle=True)
 
     training_accuracy = []
     testing_accuracy = []
     label_threshold = 0.413
 
-    for split in _splits:
+    for split in splits:
         model = regressor()
         model.train(split['training']['features'], split['training']['labels'])
         training_predictions = model.predict(split['training']['features'])
@@ -78,10 +78,13 @@ if __name__ == '__main__':
 
     print("\n{}\n".format("=" * 100))
     print("Linear Regression Using Stochastic Gradient Descent\n")
-    producer = lambda: regression.SGDLinearRegression(0.0002, 800, 1)
+    producer = lambda: regression.SGDLinearRegression(0.002, 80, 11)
     predict_housing_prices(producer)
+
+    producer = lambda: regression.SGDLinearRegression(0.001, 200, 11)
+    predict_spam_labels(producer)
 
     print("\n{}\n".format("=" * 100))
     print("Linear Regression Using Batch Gradient Descent\n")
-    producer = lambda: regression.BGDLinearRegression(0.0002, 800, 1)
+    producer = lambda: regression.BGDLinearRegression(0.002, 80, 11)
     predict_housing_prices(producer)
