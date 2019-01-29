@@ -7,11 +7,21 @@ from HW_2 import utils
 
 def predict_housing_prices(regressor):
     data = utils.get_housing_data()
-    training_features = utils.prepend_one_to_feature_vectors(data['training']['features'])
-    testing_features = utils.prepend_one_to_feature_vectors(data['testing']['features'])
+
+    training_features = data['training']['features']
+    testing_features = data['testing']['features']
+
+    combined_features = np.concatenate((training_features, testing_features))
+    normalized_features = utils.normalize_data_using_zero_mean_unit_variance(combined_features)
+
+    training_features = normalized_features[:training_features.shape[0]]
+    testing_features = normalized_features[training_features.shape[0]:]
+
+    training_features = utils.prepend_one_to_feature_vectors(training_features)
+    testing_features = utils.prepend_one_to_feature_vectors(testing_features)
 
     model = regressor()
-    model.train(training_features, testing_features)
+    model.train(training_features, data['training']['prices'])
 
     training_predictions = model.predict(training_features)
     training_mse = np.square(data['training']['prices'] - training_predictions).mean()
@@ -47,12 +57,10 @@ def predict_spam_labels(regressor):
 
         testing_accuracy.append(accuracy_score(split['testing']['labels'], testing_predictions))
 
-    print('\n')
-
-    print('Training Accuracy for spam labels', training_accuracy)
+    # print('\nTraining Accuracy for spam labels', training_accuracy)
     print('Mean Training Accuracy for spam labels', np.mean(training_accuracy))
 
-    print('Testing Accuracy for spam labels', testing_accuracy)
+    # print('\nTesting Accuracy for spam labels', testing_accuracy)
     print('Mean Testing Accuracy for spam labels', np.mean(testing_accuracy))
 
 
@@ -62,9 +70,18 @@ if __name__ == '__main__':
     predict_housing_prices(producer)
     predict_spam_labels(producer)
 
-    print("\n")
-    print("=" * 100, '\n')
+    print("\n{}\n".format("=" * 100))
     print("Ridge Regression\n")
     producer = lambda: regression.RidgeRegression(0.034)
     predict_housing_prices(producer)
     predict_spam_labels(producer)
+
+    print("\n{}\n".format("=" * 100))
+    print("Linear Regression Using Stochastic Gradient Descent\n")
+    producer = lambda: regression.SGDLinearRegression(0.0002, 800, 1)
+    predict_housing_prices(producer)
+
+    print("\n{}\n".format("=" * 100))
+    print("Linear Regression Using Batch Gradient Descent\n")
+    producer = lambda: regression.BGDLinearRegression(0.0002, 800, 1)
+    predict_housing_prices(producer)

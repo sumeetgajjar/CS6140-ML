@@ -37,64 +37,45 @@ class RidgeRegression(LinearRegression):
 
 class SGDLinearRegression(LinearRegression):
 
-    def __init__(self, learning_parameter, epochs) -> None:
+    def __init__(self, learning_parameter, epochs, seed=1, debug=False) -> None:
         super().__init__()
         self.learning_rate = learning_parameter
         self.epochs = epochs
+        self.debug = debug
+        self.seed = seed
+        np.random.seed(self.seed)
 
     def train(self, features, labels):
-        np.random.seed(100)
         self.weights = np.random.random(features.shape[1])
 
-        total_features = features.shape[1]
         for i in range(self.epochs):
             for t in range(features.shape[0]):
                 x_t = features[t]
                 y_t = labels[t]
-                temp_weights = self.weights.copy()
                 h_x = self.predict(x_t)
                 diff = h_x - y_t
-                self.weights = self.weights - (features[t] * (self.learning_rate * diff))
+                self.weights = self.weights - (x_t * (self.learning_rate * diff))
 
-                # for j in range(total_features):
-                #     h_x = self.predict(x_t)
-                #     temp_weights[j] = self.weights[j] - (self.learning_rate * (h_x - y_t) * x_t[j])
-                #     self.weights[j] = self.weights[j] - (self.learning_rate * (h_x - y_t) * x_t[j])
-
-                # self.weights = temp_weights
-
-            if i % 20 == 0:
+            if self.debug and i % 20 == 0:
                 print(np.transpose(self.weights).tolist())
-                # _training_predictions = self.predict(features)
-                # _training_mse = np.square(labels - _training_predictions).mean()
-                # print('Training MSE for housing prices', _training_mse)
-
-        self.weights = np.reshape(self.weights, (self.weights.shape[0], 1))
 
 
 class BGDLinearRegression(SGDLinearRegression):
 
     def train(self, features, labels):
-        self.weights = np.random.random((features.shape[1], 1))
+        self.weights = np.random.random((features.shape[1]))
 
         total_features = self.weights.shape[0]
         for i in range(self.epochs):
             for j in range(total_features):
-                # temp_sum = 0.0
-                # for t in range(features.shape[0]):
-                #     x_t = features[t]
-                #     y_t = labels[t]
-                #     h_x = self.predict(x_t)
-                #     temp_sum = temp_sum + ((h_x - y_t) * x_t[j])
-
                 h_x_t = self.predict(features)
-                y_t_t = np.reshape(labels, (labels.shape[0], 1))
-                x_t_j = np.reshape(features[:, j], (features.shape[0], 1))
+                y_t_t = labels
+                x_t_j = features[:, j]
                 temp_sum = np.sum((h_x_t - y_t_t) * x_t_j)
 
                 self.weights[j] = self.weights[j] - (self.learning_rate * temp_sum)
 
-            if i % 20000 == 0:
+            if self.debug and i % 20 == 0:
                 print(np.transpose(self.weights).tolist())
 
 
@@ -112,18 +93,17 @@ def linear_regression_on_housing_data():
     training_features = utils.prepend_one_to_feature_vectors(training_features)
     testing_features = utils.prepend_one_to_feature_vectors(testing_features)
 
-    for i in range(1000, 1001):
-        model = SGDLinearRegression(0.0001, 3000)
-        # model = BGDLinearRegression(0.001, 80000)
-        model.train(training_features, data['training']['prices'])
+    model = SGDLinearRegression(0.0002, 800, 1)
+    # model = BGDLinearRegression(0.0002, 800, 1)
+    model.train(training_features, data['training']['prices'])
 
-        training_predictions = model.predict(training_features)
-        training_mse = np.square(data['training']['prices'] - training_predictions).mean()
-        print('Training MSE for housing prices', training_mse)
+    training_predictions = model.predict(training_features)
+    training_mse = np.square(data['training']['prices'] - training_predictions).mean()
+    print('Training MSE for housing prices', training_mse)
 
-        testing_predictions = model.predict(testing_features)
-        testing_mse = np.square(data['testing']['prices'] - testing_predictions).mean()
-        print('Testing MSE for housing prices', testing_mse)
+    testing_predictions = model.predict(testing_features)
+    testing_mse = np.square(data['testing']['prices'] - testing_predictions).mean()
+    print('Testing MSE for housing prices', testing_mse)
 
 
 def linear_regression_on_spambase_data():
