@@ -47,9 +47,7 @@ def get_housing_data():
     }
 
 
-def normalize_data_using_zero_mean_unit_variance(data):
-    feature_vectors = data['features']
-
+def normalize_data_using_zero_mean_unit_variance(feature_vectors):
     total_features = len(feature_vectors[0])
     i = 0
     while i < total_features:
@@ -61,13 +59,10 @@ def normalize_data_using_zero_mean_unit_variance(data):
 
         i += 1
 
-    data['features'] = feature_vectors
-    return data
+    return feature_vectors
 
 
-def normalize_data_using_shift_and_scale(data):
-    feature_vectors = data['features']
-
+def normalize_data_using_shift_and_scale(feature_vectors):
     total_features = len(feature_vectors[0])
     i = 0
     while i < total_features:
@@ -79,8 +74,7 @@ def normalize_data_using_shift_and_scale(data):
 
         i += 1
 
-    data['features'] = feature_vectors
-    return data
+    return feature_vectors
 
 
 def k_fold_split(k, data, shuffle=False):
@@ -122,27 +116,7 @@ def k_fold_split(k, data, shuffle=False):
     return final_data
 
 
-def prepend_one_to_feature_vectors(data):
-    features = data['features']
-    ones = np.ones((features.shape[0], 1))
-    features = np.concatenate((ones, features), axis=1)
-    data['features'] = features
-    return data
-
-
-def get_spam_data_for_regression():
-    data = get_spam_data()
-    return prepend_one_to_feature_vectors(data)
-
-
-def get_housing_data_for_regression():
-    data = get_housing_data()
-    training_data = data['training']
-    training_data = prepend_one_to_feature_vectors(training_data)
-
-    testing_data = data['testing']
-    testing_data = prepend_one_to_feature_vectors(testing_data)
-
-    data['training'] = training_data
-    data['testing'] = testing_data
-    return data
+def prepend_one_to_feature_vectors(features_vectors):
+    ones = np.ones((features_vectors.shape[0], 1))
+    features_vectors = np.concatenate((ones, features_vectors), axis=1)
+    return features_vectors

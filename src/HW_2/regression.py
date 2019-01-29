@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import accuracy_score
 
 from HW_2 import utils
 
@@ -40,24 +41,35 @@ class SGDLinearRegression(LinearRegression):
         super().__init__()
         self.learning_rate = learning_parameter
         self.epochs = epochs
-        self.list = []
 
     def train(self, features, labels):
-        np.random.seed(123)
-        self.weights = np.random.random((features.shape[1], 1))
+        np.random.seed(100)
+        self.weights = np.random.random(features.shape[1])
 
-        total_features = self.weights.shape[0]
+        total_features = features.shape[1]
         for i in range(self.epochs):
             for t in range(features.shape[0]):
                 x_t = features[t]
                 y_t = labels[t]
-                for j in range(total_features):
-                    h_x = self.predict(x_t)
-                    self.weights[j] = self.weights[j] - (self.learning_rate * (h_x - y_t) * x_t[j])
+                temp_weights = self.weights.copy()
+                h_x = self.predict(x_t)
+                diff = h_x - y_t
+                self.weights = self.weights - (features[t] * (self.learning_rate * diff))
 
-            if i % 200 == 0:
+                # for j in range(total_features):
+                #     h_x = self.predict(x_t)
+                #     temp_weights[j] = self.weights[j] - (self.learning_rate * (h_x - y_t) * x_t[j])
+                #     self.weights[j] = self.weights[j] - (self.learning_rate * (h_x - y_t) * x_t[j])
+
+                # self.weights = temp_weights
+
+            if i % 20 == 0:
                 print(np.transpose(self.weights).tolist())
-                self.list.append(self.weights.tolist())
+                # _training_predictions = self.predict(features)
+                # _training_mse = np.square(labels - _training_predictions).mean()
+                # print('Training MSE for housing prices', _training_mse)
+
+        self.weights = np.reshape(self.weights, (self.weights.shape[0], 1))
 
 
 class BGDLinearRegression(SGDLinearRegression):
@@ -68,35 +80,41 @@ class BGDLinearRegression(SGDLinearRegression):
         total_features = self.weights.shape[0]
         for i in range(self.epochs):
             for j in range(total_features):
-                temp_sum = 0.0
-                for t in range(features.shape[0]):
-                    x_t = features[t]
-                    y_t = labels[t]
-                    h_x = self.predict(x_t)
-                    temp_sum = temp_sum + ((h_x - y_t) * x_t[j])
+                # temp_sum = 0.0
+                # for t in range(features.shape[0]):
+                #     x_t = features[t]
+                #     y_t = labels[t]
+                #     h_x = self.predict(x_t)
+                #     temp_sum = temp_sum + ((h_x - y_t) * x_t[j])
+
+                h_x_t = self.predict(features)
+                y_t_t = np.reshape(labels, (labels.shape[0], 1))
+                x_t_j = np.reshape(features[:, j], (features.shape[0], 1))
+                temp_sum = np.sum((h_x_t - y_t_t) * x_t_j)
 
                 self.weights[j] = self.weights[j] - (self.learning_rate * temp_sum)
 
+            if i % 20000 == 0:
+                print(np.transpose(self.weights).tolist())
 
-if __name__ == '__main__':
+
+def linear_regression_on_housing_data():
     data = utils.get_housing_data()
-    # data = utils.get_housing_data_for_regression()
-
     training_features = data['training']['features']
     testing_features = data['testing']['features']
-    combined_features = {
-        'features': np.concatenate((training_features, testing_features))
-    }
 
-    # normalized_features = utils.normalize_data_using_zero_mean_unit_variance(combined_features)
-    # training_features = normalized_features['features'][:training_features.shape[0]]
-    # testing_features = normalized_features['features'][training_features.shape[0]:]
+    combined_features = np.concatenate((training_features, testing_features))
+    normalized_features = utils.normalize_data_using_zero_mean_unit_variance(combined_features)
 
-    # training_features = np.concatenate((np.ones((training_features.shape[0], 1)), training_features), axis=1)
-    # testing_features = np.concatenate((np.ones((testing_features.shape[0], 1)), testing_features), axis=1)
+    training_features = normalized_features[:training_features.shape[0]]
+    testing_features = normalized_features[training_features.shape[0]:]
+
+    training_features = utils.prepend_one_to_feature_vectors(training_features)
+    testing_features = utils.prepend_one_to_feature_vectors(testing_features)
 
     for i in range(1000, 1001):
-        model = SGDLinearRegression(0.00001, 100000)
+        model = SGDLinearRegression(0.0001, 3000)
+        # model = BGDLinearRegression(0.001, 80000)
         model.train(training_features, data['training']['prices'])
 
         training_predictions = model.predict(training_features)
@@ -106,3 +124,42 @@ if __name__ == '__main__':
         testing_predictions = model.predict(testing_features)
         testing_mse = np.square(data['testing']['prices'] - testing_predictions).mean()
         print('Testing MSE for housing prices', testing_mse)
+
+
+def linear_regression_on_spambase_data():
+    data = utils.get_spam_data()
+    data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
+    data['features'] = utils.prepend_one_to_feature_vectors(data['features'])
+
+    k = 4
+    splits = utils.k_fold_split(k, data, shuffle=True)
+
+    training_accuracy = []
+    testing_accuracy = []
+    label_threshold = 0.413
+
+    for split in splits[:1]:
+        model = SGDLinearRegression(0.006, 40)
+        model.train(split['training']['features'], split['training']['labels'])
+        training_predictions = model.predict(split['training']['features'])
+        training_predictions = [1 if t >= label_threshold else 0 for t in training_predictions]
+
+        training_accuracy.append(accuracy_score(split['training']['labels'], training_predictions))
+
+        testing_predictions = model.predict(split['testing']['features'])
+        testing_predictions = [1 if t >= label_threshold else 0 for t in testing_predictions]
+
+        testing_accuracy.append(accuracy_score(split['testing']['labels'], testing_predictions))
+
+    print('\n')
+
+    print('Training Accuracy for spam labels', training_accuracy)
+    print('Mean Training Accuracy for spam labels', np.mean(training_accuracy))
+
+    print('Testing Accuracy for spam labels', testing_accuracy)
+    print('Mean Testing Accuracy for spam labels', np.mean(testing_accuracy))
+
+
+if __name__ == '__main__':
+    linear_regression_on_housing_data()
+    # linear_regression_on_spambase_data()
