@@ -86,37 +86,40 @@ def predict_spam_labels(regressor, plot_roc=False):
     print('Mean Testing Accuracy for spam labels', np.mean(testing_accuracy))
 
 
-if __name__ == '__main__':
+def demo_regression():
     print("Linear Regression\n")
     producer = lambda: regression.LinearRegression()
     predict_housing_prices(producer)
     predict_spam_labels(producer, True)
-
     print("\n{}\n".format("=" * 100))
     print("Ridge Regression\n")
     producer = lambda: regression.RidgeRegression(0.034)
     predict_housing_prices(producer)
     predict_spam_labels(producer)
-
     print("\n{}\n".format("=" * 100))
     print("Linear Regression Using Stochastic Gradient Descent\n")
     producer = lambda: regression.SGDLinearRegression(0.002, 80, 11)
     predict_housing_prices(producer)
-
     producer = lambda: regression.SGDLinearRegression(0.001, 200, 11)
     predict_spam_labels(producer, True)
-
     print("\n{}\n".format("=" * 100))
     print("Linear Regression Using Batch Gradient Descent\n")
     producer = lambda: regression.BGDLinearRegression(0.002, 80, 11)
     predict_housing_prices(producer)
-
     print("\n{}\n".format("=" * 100))
     print("Logistic Regression Using Stochastic Gradient Descent\n")
     producer = lambda: regression.SGDLogisticRegression(0.0005, 200, 1)
     predict_spam_labels(producer)
-
     print("\n{}\n".format("=" * 100))
     print("Logistic Regression Using Batch Gradient Descent\n")
     producer = lambda: regression.BGDLogisticRegression(0.0005, 200, 1)
     predict_spam_labels(producer)
+
+
+def demo_perceptron():
+    return
+
+
+if __name__ == '__main__':
+    demo_regression()
+    demo_perceptron()

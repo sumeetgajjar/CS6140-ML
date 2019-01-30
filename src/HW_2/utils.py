@@ -47,6 +47,20 @@ def get_housing_data():
     }
 
 
+def get_perceptron_data():
+    data = pd.read_csv('%sdata/perceptron/perceptronData.txt' % ROOT, header=None)
+    features = np.array(data.iloc[:, :-1])
+    labels = np.array(data.iloc[:, -1])
+
+    if features.shape[0] != labels.shape[0]:
+        raise Exception("Mismatch in Feature Tuples(%d) and Label Tuples(%d)" % (features.size, labels.size))
+
+    return {
+        'features': features,
+        'labels': labels
+    }
+
+
 def normalize_data_using_zero_mean_unit_variance(feature_vectors):
     total_features = len(feature_vectors[0])
     i = 0
