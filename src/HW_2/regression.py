@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 from HW_2 import utils
 
@@ -60,6 +60,14 @@ class SGDLinearRegression(LinearRegression):
                 print(np.transpose(self.weights).tolist())
 
 
+class SGDLogisticRegression(SGDLinearRegression):
+
+    def predict(self, features):
+        wx = super().predict(features)
+        g_x = 1 / (1 + np.exp(-wx))
+        return g_x
+
+
 class BGDLinearRegression(SGDLinearRegression):
 
     def train(self, features, labels):
@@ -77,6 +85,14 @@ class BGDLinearRegression(SGDLinearRegression):
 
             if self.debug and i % 20 == 0:
                 print(np.transpose(self.weights).tolist())
+
+
+class BGDLogisticRegression(BGDLinearRegression):
+
+    def predict(self, features):
+        wx = super().predict(features)
+        g_x = 1 / (1 + np.exp(-wx))
+        return g_x
 
 
 def linear_regression_on_housing_data():
@@ -118,8 +134,10 @@ def linear_regression_on_spambase_data():
     testing_accuracy = []
     label_threshold = 0.413
 
-    for split in splits:
-        model = BGDLinearRegression(0.0005, 1000, 1)
+    for split in splits[:1]:
+        # model = BGDLinearRegression(0.0005, 1000, 1)
+        model = BGDLogisticRegression(0.0005, 100, 1)
+        # model = SGDLogisticRegression(0.0005, 200, 1)
         model.train(split['training']['features'], split['training']['labels'])
         training_predictions = model.predict(split['training']['features'])
         training_predictions = [1 if t >= label_threshold else 0 for t in training_predictions]
@@ -130,6 +148,8 @@ def linear_regression_on_spambase_data():
         testing_predictions = [1 if t >= label_threshold else 0 for t in testing_predictions]
 
         testing_accuracy.append(accuracy_score(split['testing']['labels'], testing_predictions))
+
+        confusion_matrix(split['testing']['labels'], testing_predictions)
 
     print('\n')
 

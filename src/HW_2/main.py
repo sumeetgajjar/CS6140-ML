@@ -1,5 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 from HW_2 import regression
 from HW_2 import utils
@@ -32,7 +33,25 @@ def predict_housing_prices(regressor):
     print('Testing MSE for housing prices', testing_mse)
 
 
-def predict_spam_labels(regressor):
+def plot_roc_curve(y_true, y_pred_prob):
+    thresholds = np.linspace(np.min(y_pred_prob), np.max(y_pred_prob), 100)
+    fpr_list = []
+    tpr_list = []
+    for threshold in thresholds:
+        y_pred = [1 if t >= threshold else 0 for t in y_pred_prob]
+        tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+        fpr = fp / (fp + tn)
+        tpr = tp / (tp + fn)
+        fpr_list.append(fpr)
+        tpr_list.append(tpr)
+
+    auc = -np.trapz(tpr_list, fpr_list)
+    plt.plot(fpr_list, tpr_list, label="SpamBase Data Set, auc={}".format(auc))
+    plt.legend(loc=4)
+    plt.show()
+
+
+def predict_spam_labels(regressor, plot_roc=False):
     data = utils.get_spam_data()
     data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
     data['features'] = utils.prepend_one_to_feature_vectors(data['features'])
@@ -44,7 +63,7 @@ def predict_spam_labels(regressor):
     testing_accuracy = []
     label_threshold = 0.413
 
-    for split in splits:
+    for split in splits[:1]:
         model = regressor()
         model.train(split['training']['features'], split['training']['labels'])
         training_predictions = model.predict(split['training']['features'])
@@ -53,9 +72,12 @@ def predict_spam_labels(regressor):
         training_accuracy.append(accuracy_score(split['training']['labels'], training_predictions))
 
         testing_predictions = model.predict(split['testing']['features'])
-        testing_predictions = [1 if t >= label_threshold else 0 for t in testing_predictions]
+        if plot_roc:
+            plot_roc_curve(split['testing']['labels'], testing_predictions)
 
+        testing_predictions = [1 if t >= label_threshold else 0 for t in testing_predictions]
         testing_accuracy.append(accuracy_score(split['testing']['labels'], testing_predictions))
+        print(confusion_matrix(split['testing']['labels'], testing_predictions))
 
     # print('\nTraining Accuracy for spam labels', training_accuracy)
     print('Mean Training Accuracy for spam labels', np.mean(training_accuracy))
@@ -68,7 +90,7 @@ if __name__ == '__main__':
     print("Linear Regression\n")
     producer = lambda: regression.LinearRegression()
     predict_housing_prices(producer)
-    predict_spam_labels(producer)
+    predict_spam_labels(producer, True)
 
     print("\n{}\n".format("=" * 100))
     print("Ridge Regression\n")
@@ -82,9 +104,19 @@ if __name__ == '__main__':
     predict_housing_prices(producer)
 
     producer = lambda: regression.SGDLinearRegression(0.001, 200, 11)
-    predict_spam_labels(producer)
+    predict_spam_labels(producer, True)
 
     print("\n{}\n".format("=" * 100))
     print("Linear Regression Using Batch Gradient Descent\n")
     producer = lambda: regression.BGDLinearRegression(0.002, 80, 11)
     predict_housing_prices(producer)
+
+    print("\n{}\n".format("=" * 100))
+    print("Logistic Regression Using Stochastic Gradient Descent\n")
+    producer = lambda: regression.SGDLogisticRegression(0.0005, 200, 1)
+    predict_spam_labels(producer)
+
+    print("\n{}\n".format("=" * 100))
+    print("Logistic Regression Using Batch Gradient Descent\n")
+    producer = lambda: regression.BGDLogisticRegression(0.0005, 200, 1)
+    predict_spam_labels(producer)
