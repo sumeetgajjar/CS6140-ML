@@ -10,6 +10,7 @@ class Perceptron(object):
         self.seed = seed
         self.learning_rate = learning_rate
         self.weights = None
+        self.normalized_weights = None
         np.random.seed(self.seed)
 
     def pre_processing(self, features, labels):
@@ -50,9 +51,9 @@ class Perceptron(object):
             diff = (self.learning_rate * np.sum(x_t, axis=1))
             self.weights = self.weights + np.reshape(diff, (self.weights.shape[0], 1))
 
-            print(np.transpose(self.weights).tolist())
-
             iteration += 1
+
+        self.normalized_weights = self.weights.ravel()[1:]/(-self.weights[0])
 
     def predict(self, features):
         y_pred = np.matmul(features, self.weights)
@@ -69,7 +70,8 @@ def demo_perceptron():
 
     labels = data['labels']
     perceptron.train(features, labels)
-    print(np.transpose(perceptron.weights).tolist())
+    print("Raw Weights: ", np.transpose(perceptron.weights).tolist())
+    print("Normalized Weights: ", np.transpose(perceptron.normalized_weights).tolist())
 
 
 if __name__ == '__main__':
