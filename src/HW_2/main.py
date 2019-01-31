@@ -4,6 +4,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 from HW_2 import regression
 from HW_2 import utils
+from HW_2.perceptron import Perceptron
 
 
 def predict_housing_prices(regressor):
@@ -117,7 +118,15 @@ def demo_regression():
 
 
 def demo_perceptron():
-    return
+    data = utils.get_perceptron_data()
+    perceptron = Perceptron(0.001, 11, 0.1)
+    features = data['features']
+    features = utils.normalize_data_using_zero_mean_unit_variance(features)
+    features = utils.prepend_one_to_feature_vectors(features)
+
+    labels = data['labels']
+    perceptron.train(features, labels)
+    print(np.transpose(perceptron.weights).tolist())
 
 
 if __name__ == '__main__':

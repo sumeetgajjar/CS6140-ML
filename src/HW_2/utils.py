@@ -48,7 +48,7 @@ def get_housing_data():
 
 
 def get_perceptron_data():
-    data = pd.read_csv('%sdata/perceptron/perceptronData.txt' % ROOT, header=None)
+    data = pd.read_csv('%sdata/perceptron/perceptronData.txt' % ROOT, delimiter='\\s+', header=None)
     features = np.array(data.iloc[:, :-1])
     labels = np.array(data.iloc[:, -1])
 
