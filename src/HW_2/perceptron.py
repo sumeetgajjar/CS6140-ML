@@ -5,8 +5,7 @@ from HW_2 import utils
 
 class Perceptron(object):
 
-    def __init__(self, learning_rate, seed, epsilon) -> None:
-        self.epsilon = epsilon
+    def __init__(self, learning_rate, seed) -> None:
         self.seed = seed
         self.learning_rate = learning_rate
         self.weights = None
@@ -53,7 +52,7 @@ class Perceptron(object):
 
             iteration += 1
 
-        self.normalized_weights = self.weights.ravel()[1:]/(-self.weights[0])
+        self.normalized_weights = self.weights.ravel()[1:] / (-self.weights[0])
 
     def predict(self, features):
         y_pred = np.matmul(features, self.weights)
@@ -63,15 +62,15 @@ class Perceptron(object):
 
 def demo_perceptron():
     data = utils.get_perceptron_data()
-    perceptron = Perceptron(0.001, 11, 0.1)
+    perceptron = Perceptron(0.02, 11)
     features = data['features']
     features = utils.normalize_data_using_zero_mean_unit_variance(features)
     features = utils.prepend_one_to_feature_vectors(features)
 
     labels = data['labels']
     perceptron.train(features, labels)
-    print("Raw Weights: ", np.transpose(perceptron.weights).tolist())
-    print("Normalized Weights: ", np.transpose(perceptron.normalized_weights).tolist())
+    print("Raw Weights: ", perceptron.weights.ravel().tolist())
+    print("Normalized Weights: ", perceptron.normalized_weights.ravel().tolist())
 
 
 if __name__ == '__main__':
