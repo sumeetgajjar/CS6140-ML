@@ -116,10 +116,18 @@ def demo_regression():
     producer = lambda: regression.BGDLogisticRegression(0.0005, 200, 1)
     predict_spam_labels(producer)
 
+    print("\n{}\n".format("=" * 100))
+    print("Logistic Regression Using Newton's Method\n")
+    producer = lambda: regression.NewtonMethodLogisticRegression(0.1, 30, 11)
+    predict_spam_labels(producer)
+
 
 def demo_perceptron():
+    print("\n{}\n".format("=" * 100))
+    print("Perceptron\n")
+
     data = utils.get_perceptron_data()
-    perceptron = Perceptron(0.001, 11, 0.1)
+    perceptron = Perceptron(0.001, 11)
     features = data['features']
     features = utils.normalize_data_using_zero_mean_unit_variance(features)
     features = utils.prepend_one_to_feature_vectors(features)

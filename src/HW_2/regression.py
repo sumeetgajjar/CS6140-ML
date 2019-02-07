@@ -95,6 +95,44 @@ class BGDLogisticRegression(BGDLinearRegression):
         return g_x
 
 
+class NewtonMethodLogisticRegression(LinearRegression):
+
+    def __init__(self, learning_rate, epochs, seed) -> None:
+        super().__init__()
+        self.seed = seed
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        np.random.seed(self.seed)
+
+    def train(self, features, labels):
+        self.weights = np.random.random((features.shape[1]))
+
+        for k in range(self.epochs):
+            x_t = np.transpose(features)
+            pie_k = self.predict(features)
+            one_minus_pie_k = 1 - pie_k
+            temp = pie_k * one_minus_pie_k
+
+            diag = np.identity(features.shape[0])
+            np.fill_diagonal(diag, temp)
+
+            m1 = np.matmul(x_t, diag)
+            m2 = np.matmul(m1, features)
+
+            inverse = np.linalg.pinv(m2)
+            g_k = np.matmul(x_t, pie_k - labels)
+
+            self.weights = self.weights - self.learning_rate * np.matmul(inverse, g_k)
+
+            if k % 20 == 0:
+                print(np.transpose(self.weights).tolist())
+
+    def predict(self, features):
+        wx = super().predict(features)
+        g_x = 1 / (1 + np.exp(-wx))
+        return g_x
+
+
 def linear_regression_on_housing_data():
     data = utils.get_housing_data()
     training_features = data['training']['features']
@@ -136,7 +174,7 @@ def linear_regression_on_spambase_data():
 
     for split in splits[:1]:
         # model = BGDLinearRegression(0.0005, 1000, 1)
-        model = BGDLogisticRegression(0.0005, 100, 1)
+        model = NewtonMethodLogisticRegression(0.1, 30, 11)
         # model = SGDLogisticRegression(0.0005, 200, 1)
         model.train(split['training']['features'], split['training']['labels'])
         training_predictions = model.predict(split['training']['features'])
