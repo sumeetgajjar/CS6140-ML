@@ -25,13 +25,16 @@ class WineClassifier:
             'output_layer': tf.Variable(tf.random_normal([self.output_dim]))
         }
 
-    def __get_hidden_layer(self, x):
+    def get_hidden_layer(self, x):
         hidden_layer = tf.nn.sigmoid(tf.add(tf.matmul(x, self.weights['hidden_layer']), self.bias['hidden_layer']))
         return hidden_layer
 
-    def __get_output_layer(self, x):
+    def get_output_layer(self, x):
         output_layer = tf.nn.sigmoid(tf.add(tf.matmul(x, self.weights['output_layer']), self.bias['output_layer']))
         return output_layer
+
+    def get_loss(self, y_pred, y_true):
+        return tf.reduce_mean(tf.pow(y_true - y_pred, 2))
 
     def __one_hot_encode(self, label):
         label = label.copy()
@@ -52,13 +55,13 @@ class WineClassifier:
         X = tf.placeholder("float", [None, self.input_dim])
         Y = tf.placeholder("float", [None, self.output_dim])
 
-        hidden_layer_output = self.__get_hidden_layer(X)
-        output_layer_output = self.__get_output_layer(hidden_layer_output)
+        hidden_layer_output = self.get_hidden_layer(X)
+        output_layer_output = self.get_output_layer(hidden_layer_output)
 
         y_pred = output_layer_output
         y_true = Y
 
-        loss = tf.reduce_mean(tf.pow(y_true - y_pred, 2))
+        loss = self.get_loss(y_pred, y_true)
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
         init = tf.global_variables_initializer()
@@ -86,6 +89,21 @@ class WineClassifier:
         }
 
 
+class MleWineClassifier(WineClassifier):
+
+    def get_hidden_layer(self, x):
+        hidden_layer = tf.nn.relu(tf.add(tf.matmul(x, self.weights['hidden_layer']), self.bias['hidden_layer']))
+        return hidden_layer
+
+    def get_output_layer(self, x):
+        output_layer = tf.nn.softmax(tf.add(tf.matmul(x, self.weights['output_layer']), self.bias['output_layer']),
+                                     axis=1)
+        return output_layer
+
+    def get_loss(self, y_pred, y_true):
+        return tf.losses.softmax_cross_entropy(y_true, y_pred)
+
+
 def demo_wine_classifier():
     data = utils.read_wine_data()
     classifier = WineClassifier(data['training']['features'].iloc[0].shape[0], 8, 3, seed=23)
@@ -95,5 +113,15 @@ def demo_wine_classifier():
     print("Testing Accuracy", accuracy_score(data['testing']['labels'], predicted['testing']))
 
 
+def demo_maximum_likelihood_wine_classifier():
+    data = utils.read_wine_data()
+    classifier = MleWineClassifier(data['training']['features'].iloc[0].shape[0], 4, 3, seed=11)
+    predicted = classifier.predict(data['training'], data['testing'], 0.0001, 1000, 100)
+
+    print("Training Accuracy", accuracy_score(data['training']['labels'], predicted['training']))
+    print("Testing Accuracy", accuracy_score(data['testing']['labels'], predicted['testing']))
+
+
 if __name__ == '__main__':
-    demo_wine_classifier()
+    # demo_wine_classifier()
+    demo_maximum_likelihood_wine_classifier()
