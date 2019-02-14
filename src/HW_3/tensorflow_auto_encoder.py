@@ -54,8 +54,13 @@ class AutoEncoder:
                     print('Step %i: Minibatch Loss: %f' % (i, l))
 
             predict = sess.run(decoder_output, feed_dict={X: training_features})
+            predict = sess.run(tf.argmax(predict, axis=1))
+            true = sess.run(tf.argmax(training_features, axis=1))
 
-        return np.round(predict)
+        return {
+            "Truth": true,
+            "Predicted": predict
+        }
 
 
 def demo_auto_encoder():
