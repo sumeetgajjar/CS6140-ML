@@ -74,17 +74,25 @@ class WineClassifier:
                 if i % display_step == 0 or i == 1:
                     print('Step %i: Minibatch Loss: %f' % (i, l))
 
-            predict = sess.run(output_layer_output, feed_dict={X: testing_data_features})
-            predict = sess.run(tf.add(tf.argmax(predict, axis=1), 1))
+            training_prediction = sess.run(output_layer_output, feed_dict={X: training_data_features})
+            training_prediction = sess.run(tf.add(tf.argmax(training_prediction, axis=1), 1))
 
-        return predict
+            testing_prediction = sess.run(output_layer_output, feed_dict={X: testing_data_features})
+            testing_prediction = sess.run(tf.add(tf.argmax(testing_prediction, axis=1), 1))
+
+        return {
+            "training": training_prediction,
+            "testing": testing_prediction
+        }
 
 
 def demo_wine_classifier():
     data = utils.read_wine_data()
     classifier = WineClassifier(data['training']['features'].iloc[0].shape[0], 8, 3, seed=23)
     predicted = classifier.predict(data['training'], data['testing'], 0.01, 4000, 100)
-    print(accuracy_score(data['testing']['labels'], predicted))
+
+    print("Training Accuracy", accuracy_score(data['training']['labels'], predicted['training']))
+    print("Testing Accuracy", accuracy_score(data['testing']['labels'], predicted['testing']))
 
 
 if __name__ == '__main__':
