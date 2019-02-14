@@ -5,13 +5,23 @@ ROOT = '../../'
 
 
 def read_wine_data():
-    data = pd.read_csv('{}data/wine/wine.txt'.format(ROOT), header=None)
-    labels = data.iloc[:, 0]
-    features = data.iloc[:, 1:]
+    training_data = pd.read_csv('{}data/wine/train_wine.csv'.format(ROOT), header=None)
+    training_labels = training_data.iloc[:, 0]
+    training_features = training_data.iloc[:, 1:]
+
+    testing_data = pd.read_csv('{}data/wine/test_wine.csv'.format(ROOT), header=None)
+    testing_labels = testing_data.iloc[:, 0]
+    testing_features = testing_data.iloc[:, 1:]
 
     return {
-        'labels': labels,
-        'features': features
+        'training': {
+            'features': training_features,
+            'labels': training_labels
+        },
+        'testing': {
+            'features': testing_features,
+            'labels': testing_labels
+        }
     }
 
 
