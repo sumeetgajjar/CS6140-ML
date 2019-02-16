@@ -91,7 +91,7 @@ class NeuralNetwork:
             raise Exception("Unknown Activation Function")
 
     def get_outer_layer_derivative(self, z):
-        return self.get_derivative(z, 'outer_layer')
+        return self.get_derivative(z, 'output_layer')
 
     def get_hidden_layer_derivative(self, y):
         return self.get_derivative(y, 'hidden_layer')
