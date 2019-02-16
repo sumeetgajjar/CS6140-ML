@@ -82,9 +82,7 @@ class NeuralNetwork:
         j_w = 0.5 * np.sum(np.square(t_k - z_k))
         return j_w
 
-    def train(self, training_features, labels, learning_rate, epochs, display_step, epsilon):
-        training_labels = utils.one_hot_encode_wine_classifier_labels(labels)
-
+    def train(self, training_features, training_labels, learning_rate, epochs, display_step, epsilon):
         for iteration in range(1, epochs + 1):
 
             printed = False
@@ -132,6 +130,7 @@ def demo_wine_classifier():
 
     training_features = data['training']['features']
     training_labels = data['training']['labels']
+    one_hot_training_labels = utils.one_hot_encode_wine_classifier_labels(training_labels)
 
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
@@ -157,7 +156,7 @@ def demo_wine_classifier():
     nn = NeuralNetwork(input_dim, hidden_layer_dim, output_layer_dim, activation_functions, Loss.MEAN_SQUARE_ERROR,
                        123)
 
-    nn.train(training_features, training_labels, 0.05, 200, 10, 0.001)
+    nn.train(training_features, one_hot_training_labels, 0.05, 100, 10, 0.001)
 
     training_predicted = nn.predict(training_features)
     print("Training Accuracy", accuracy_score(training_labels, training_predicted))
