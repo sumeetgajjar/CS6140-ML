@@ -79,6 +79,23 @@ class NeuralNetwork:
         j_w = 0.5 * np.sum(np.square(t_k - z_k))
         return j_w
 
+    def get_derivative(self, output, layer):
+        activation_function = self.activation_functions[layer]
+        if activation_function == ActivationFunction.RELU:
+            return self.relu
+        elif activation_function == ActivationFunction.SIGMOID:
+            return output * (1 - output)
+        elif activation_function == ActivationFunction.SOFT_MAX:
+            return lambda x: softmax(x)
+        else:
+            raise Exception("Unknown Activation Function")
+
+    def get_outer_layer_derivative(self, z):
+        return self.get_derivative(z, 'outer_layer')
+
+    def get_hidden_layer_derivative(self, y):
+        return self.get_derivative(y, 'hidden_layer')
+
     def train(self, training_features, training_labels, learning_rate, epochs, display_step, epsilon):
         for iteration in range(1, epochs + 1):
 
@@ -97,7 +114,7 @@ class NeuralNetwork:
                 if j_w < epsilon:
                     break
 
-                f_prime_net_k = z * (1 - z)
+                f_prime_net_k = self.get_outer_layer_derivative(z)
 
                 outer_w = self.weights['output_layer']
                 for j in range(self.hidden_layer_dim):
@@ -106,7 +123,7 @@ class NeuralNetwork:
                                 learning_rate * (training_labels[x][k] - z[x][k]) * f_prime_net_k[x][k] * y[x][j])
                         outer_w[j][k] = outer_w[j][k] + delta_outer
 
-                f_prime_net_j = y * (1 - y)
+                f_prime_net_j = self.get_hidden_layer_derivative(y)
 
                 hidden_w = self.weights['hidden_layer']
                 for i in range(self.input_dim):
