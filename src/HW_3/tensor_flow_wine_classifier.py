@@ -36,21 +36,12 @@ class WineClassifier:
     def get_loss(self, y_pred, y_true):
         return tf.reduce_mean(tf.pow(y_true - y_pred, 2))
 
-    def __one_hot_encode(self, label):
-        label = label.copy()
-        label = label - 1
-        unique_values = np.unique(label).shape[0]
-        label_size = label.shape[0]
-        hot_encoded_vector = np.zeros((label_size, unique_values), dtype=int)
-        hot_encoded_vector[np.arange(label_size), label] = 1
-        return hot_encoded_vector
-
     def predict(self, training_data, testing_data, learning_rate, epochs,
                 display_step):
 
         training_data_features = training_data['features']
         testing_data_features = testing_data['features']
-        training_data_labels = self.__one_hot_encode(training_data['labels'])
+        training_data_labels = utils.one_hot_encode_wine_classifier_labels(training_data['labels'])
 
         X = tf.placeholder("float", [None, self.input_dim])
         Y = tf.placeholder("float", [None, self.output_dim])

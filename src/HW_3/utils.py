@@ -60,3 +60,19 @@ def get_input_for_encoder(dim):
     for i in range(0, 8):
         features[i][i] = 1
     return features
+
+
+def one_hot_encode_wine_classifier_labels(label):
+    label = label.copy()
+    label = label - 1
+    unique_values = np.unique(label).shape[0]
+    label_size = label.shape[0]
+    hot_encoded_vector = np.zeros((label_size, unique_values), dtype=int)
+    hot_encoded_vector[np.arange(label_size), label] = 1
+    return hot_encoded_vector
+
+
+def prepend_one_to_feature_vectors(features_vectors):
+    ones = np.ones((features_vectors.shape[0], 1))
+    features_vectors = np.concatenate((ones, features_vectors), axis=1)
+    return features_vectors
