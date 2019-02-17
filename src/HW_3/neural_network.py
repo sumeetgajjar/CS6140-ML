@@ -75,7 +75,7 @@ class NeuralNetwork:
         y_pred = self.forward_propagate(features)
         return np.argmax(y_pred, axis=1) + 1
 
-    def get_loss(self, t_k, z_k):
+    def get_square_loss(self, t_k, z_k):
         j_w = 0.5 * np.sum(np.square(t_k - z_k))
         return j_w
 
@@ -106,7 +106,7 @@ class NeuralNetwork:
                 y = self.get_hidden_layer_output(training_features)
                 z = self.get_output_layer_output(y)
 
-                j_w = self.get_loss(training_labels, z)
+                j_w = self.get_square_loss(training_labels, z)
                 if not printed and (iteration % display_step == 0 or iteration == 1):
                     printed = True
                     print('Step %i: Minibatch Loss: %f' % (iteration, j_w))
