@@ -36,7 +36,7 @@ def demo_wine_mle_classifier():
     nn = NeuralNetwork(input_dim, hidden_layer_dim, output_layer_dim, activation_functions,
                        Loss.MAXIMUM_LIKELIHOOD_CROSS_ENTROPY, 123)
 
-    nn.train(training_features, one_hot_training_labels, 0.01, 80, 10, 0.001)
+    nn.train(training_features, one_hot_training_labels, 0.03, 40, 10, 0.001)
 
     training_predicted = nn.predict(training_features)
     print("Training Accuracy", accuracy_score(training_labels, training_predicted))
