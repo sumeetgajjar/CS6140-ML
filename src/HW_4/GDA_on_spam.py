@@ -38,7 +38,7 @@ class GDA:
         sigma[di] = sigma[di] * self.sigma_diagonal_multiplier
         self.sigma = sigma
 
-    def predict_vectorized(self, features):
+    def vectorized_predict(self, features):
         common = 1 / (np.sqrt(np.power(2 * np.pi, self.d) * np.linalg.det(self.sigma)))
         sigma_inverse = np.linalg.pinv(self.sigma)
 
@@ -84,8 +84,8 @@ def demo_gda_on_spam_data():
     for k_fold_data in k_folds:
         gda = GDA(2)
         gda.train(k_fold_data['training']['features'], k_fold_data['training']['labels'])
-        training_predicted_labels = gda.predict_vectorized(k_fold_data['training']['features'])
-        testing_predicted_labels = gda.predict_vectorized(k_fold_data['testing']['features'])
+        training_predicted_labels = gda.vectorized_predict(k_fold_data['training']['features'])
+        testing_predicted_labels = gda.vectorized_predict(k_fold_data['testing']['features'])
 
         training_accuracy.append(accuracy_score(k_fold_data['training']['labels'], training_predicted_labels))
         testing_accuracy.append(accuracy_score(k_fold_data['testing']['labels'], testing_predicted_labels))
