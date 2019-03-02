@@ -8,7 +8,7 @@ from HW_4 import utils
 
 class GDA:
 
-    def __init__(self, sigma_diagonal_multiplier=1) -> None:
+    def __init__(self, sigma_diagonal_multiplier=1.0) -> None:
         super().__init__()
         self.non_spam_mean = None
         self.spam_mean = None
@@ -82,7 +82,7 @@ def demo_gda_on_spam_data():
     training_accuracy = []
     testing_accuracy = []
     for k_fold_data in k_folds:
-        gda = GDA(2)
+        gda = GDA(1)
         gda.train(k_fold_data['training']['features'], k_fold_data['training']['labels'])
         training_predicted_labels = gda.vectorized_predict(k_fold_data['training']['features'])
         testing_predicted_labels = gda.vectorized_predict(k_fold_data['testing']['features'])
