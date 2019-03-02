@@ -56,3 +56,33 @@ def k_fold_split(k, data, seed=11, shuffle=False):
         testing_fold_index += 1
 
     return final_data
+
+
+def normalize_data_using_zero_mean_unit_variance(feature_vectors):
+    total_features = len(feature_vectors[0])
+    i = 0
+    while i < total_features:
+        feature_values = feature_vectors[:, i]
+        mean = feature_values.mean()
+        std = feature_values.std()
+        normalized_values = (feature_values - mean) / std
+        feature_vectors[:, i] = normalized_values
+
+        i += 1
+
+    return feature_vectors
+
+
+def normalize_data_using_shift_and_scale(feature_vectors):
+    total_features = len(feature_vectors[0])
+    i = 0
+    while i < total_features:
+        feature_values = feature_vectors[:, i]
+        f_min = feature_values.min()
+        f_max = feature_values.max()
+        normalized_values = (feature_values - f_min) / (f_max - f_min)
+        feature_vectors[:, i] = normalized_values
+
+        i += 1
+
+    return feature_vectors
