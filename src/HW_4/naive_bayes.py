@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.metrics import accuracy_score
+from prettytable import PrettyTable
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 from HW_4 import utils
 
@@ -62,10 +63,10 @@ class NaiveBayesBernoulli:
 
         for f in features:
             p_non_spam = np.product(self.zero_non_spam_prob[f == 0])
-            p_non_spam *= np.product(self.one_non_spam_prob[f == 1])
+            p_non_spam *= np.product(self.one_non_spam_prob[f == 1]) * self.prior_p_non_spam
 
             p_spam = np.product(self.zero_spam_prob[f == 0])
-            p_spam *= np.product(self.one_spam_prob[f == 1])
+            p_spam *= np.product(self.one_spam_prob[f == 1]) * self.prior_p_spam
 
             predicted_non_spam_probs.append(p_non_spam)
             predicted_spam_probs.append(p_spam)
@@ -86,6 +87,15 @@ class NaiveBayesBernoulli:
         return features
 
 
+def print_info_table(info_table):
+    table = PrettyTable(["Fold", "FP Rate", "FN Rate", "Error Rate"])
+
+    for info in info_table:
+        table.add_row(info)
+
+    print(table)
+
+
 def demo_naive_bayes_with_bernoulli_features():
     data = utils.get_spam_data()
     data['features'] = NaiveBayesBernoulli.convert_continuous_features_to_discrete(data['features'])
@@ -94,6 +104,10 @@ def demo_naive_bayes_with_bernoulli_features():
 
     training_accuracy = []
     testing_accuracy = []
+
+    info_table = []
+
+    i = 1
     for k_fold_data in k_folds:
         naive_bayes = NaiveBayesBernoulli(1, data['features'].shape[1], 1)
         naive_bayes.train(k_fold_data['training']['features'], k_fold_data['training']['labels'])
@@ -102,7 +116,27 @@ def demo_naive_bayes_with_bernoulli_features():
         testing_predicted_labels = naive_bayes.predict(k_fold_data['testing']['features'])
 
         training_accuracy.append(accuracy_score(k_fold_data['training']['labels'], training_predicted_labels))
-        testing_accuracy.append(accuracy_score(k_fold_data['testing']['labels'], testing_predicted_labels))
+
+        testing_true_labels = k_fold_data['testing']['labels']
+        testing_accuracy.append(accuracy_score(testing_true_labels, testing_predicted_labels))
+
+        tn, fp, fn, tp = confusion_matrix(testing_true_labels, testing_predicted_labels).ravel()
+        fp_rate = fp / testing_true_labels.shape[0]
+        fn_rate = fn / testing_true_labels.shape[0]
+        error_rate = fp_rate + fn_rate
+        info_table.append(["{}".format(i), fp_rate, fn_rate, error_rate])
+
+        if i == 1:
+            utils.plot_roc_curve(testing_true_labels, testing_predicted_labels)
+
+        i += 1
+
+    avg_fp_rate = np.mean([info[1] for info in info_table])
+    avg_fn_rate = np.mean([info[2] for info in info_table])
+    avg_error_rate = np.mean([info[3] for info in info_table])
+
+    info_table.append(["Avg", avg_fp_rate, avg_fn_rate, avg_error_rate])
+    print_info_table(info_table)
 
     print("Training accuracy: ", np.mean(training_accuracy))
     print("Testing accuracy: ", np.mean(testing_accuracy))

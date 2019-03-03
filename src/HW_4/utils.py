@@ -1,5 +1,7 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.metrics import confusion_matrix
 
 ROOT = '../../'
 
@@ -86,3 +88,21 @@ def normalize_data_using_shift_and_scale(feature_vectors):
         i += 1
 
     return feature_vectors
+
+
+def plot_roc_curve(y_true, y_pred_prob):
+    thresholds = np.linspace(np.min(y_pred_prob), np.max(y_pred_prob), 100)
+    fpr_list = []
+    tpr_list = []
+    for threshold in thresholds:
+        y_pred = [1 if t >= threshold else 0 for t in y_pred_prob]
+        tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+        fpr = fp / (fp + tn)
+        tpr = tp / (tp + fn)
+        fpr_list.append(fpr)
+        tpr_list.append(tpr)
+
+    auc = -np.trapz(tpr_list, fpr_list)
+    plt.plot(fpr_list, tpr_list, label="SpamBase Data Set, auc={}".format(auc))
+    plt.legend(loc=4)
+    plt.show()
