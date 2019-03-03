@@ -90,6 +90,12 @@ class NaiveBayesBernoulli:
 def print_info_table(info_table):
     table = PrettyTable(["Fold", "FP Rate", "FN Rate", "Error Rate"])
 
+    avg_fp_rate = np.mean([info[1] for info in info_table])
+    avg_fn_rate = np.mean([info[2] for info in info_table])
+    avg_error_rate = np.mean([info[3] for info in info_table])
+
+    info_table.append(["Avg", avg_fp_rate, avg_fn_rate, avg_error_rate])
+
     for info in info_table:
         table.add_row(info)
 
@@ -131,11 +137,6 @@ def demo_naive_bayes_with_bernoulli_features():
 
         i += 1
 
-    avg_fp_rate = np.mean([info[1] for info in info_table])
-    avg_fn_rate = np.mean([info[2] for info in info_table])
-    avg_error_rate = np.mean([info[3] for info in info_table])
-
-    info_table.append(["Avg", avg_fp_rate, avg_fn_rate, avg_error_rate])
     print_info_table(info_table)
 
     print("Training accuracy: ", np.mean(training_accuracy))
