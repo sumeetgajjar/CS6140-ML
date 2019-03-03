@@ -126,8 +126,8 @@ def demo_naive_bayes_with_bernoulli_features():
         error_rate = fp_rate + fn_rate
         info_table.append(["{}".format(i), fp_rate, fn_rate, error_rate])
 
-        if i == 1:
-            utils.plot_roc_curve(testing_true_labels, testing_predicted_labels)
+        # if i == 1:
+        # utils.plot_roc_curve(testing_true_labels, testing_predicted_labels)
 
         i += 1
 
