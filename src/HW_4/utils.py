@@ -18,6 +18,16 @@ def get_spam_data():
     }
 
 
+def get_mixture_of_two_gaussian_data():
+    data = pd.read_csv('%sdata/gaussian/2gaussian.txt' % ROOT, delimiter=' ', header=None)
+    return np.array(data.iloc[:, :])
+
+
+def get_mixture_of_three_gaussian_data():
+    data = pd.read_csv('%sdata/gaussian/3gaussian.txt' % ROOT, delimiter=' ', header=None)
+    return np.array(data.iloc[:, :])
+
+
 def k_fold_split(k, data, seed=11, shuffle=False):
     sample_size = data['features'].shape[0]
 
