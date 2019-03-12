@@ -33,7 +33,7 @@ class EM:
         p0, p1, p2 = np.sum(self.z_i_m, axis=1) / data.shape[0]
         sigma0 = np.dot((self.z_i_m[0] * (data - mean0).T), (data - mean0)) / np.sum(self.z_i_m[0])
         sigma1 = np.dot((self.z_i_m[1] * (data - mean1).T), (data - mean1)) / np.sum(self.z_i_m[1])
-        sigma2 = np.dot((self.z_i_m[2] * (data - mean1).T), (data - mean2)) / np.sum(self.z_i_m[2])
+        sigma2 = np.dot((self.z_i_m[2] * (data - mean2).T), (data - mean2)) / np.sum(self.z_i_m[2])
 
         self.mean = np.array([mean0, mean1, mean2])
         self.cov = np.array([sigma0, sigma1, sigma2])
