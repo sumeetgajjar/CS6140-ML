@@ -1,7 +1,8 @@
 from enum import Enum
 
+import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, auc, roc_curve
 
 from HW_5 import utils
 
@@ -44,10 +45,10 @@ class DecisionStump:
 
     def __get_unique_thresholds_for_feature(self, feature_index):
         all_values = self.features[:, feature_index]
-        return np.array([np.unique(all_values), np.min(all_values) - 1, np.max(all_values) + 1])
+        return np.append(np.unique(all_values), [np.min(all_values) - 1, np.max(all_values) + 1])
 
     def find_optimal_decision_stump(self):
-        min_error = 1
+        optimal_error = 0
         best_predictor = None
 
         for i in range(self.features.shape[1]):
@@ -60,8 +61,8 @@ class DecisionStump:
                 error = 1 - accuracy_score(self.labels, y_predicted)
                 error = abs(0.5 - error)
 
-                if error < min_error:
-                    min_error = error
+                if error > optimal_error:
+                    optimal_error = error
                     best_predictor = predictor
 
         self.predictor = best_predictor
@@ -88,19 +89,21 @@ class AdaBoost:
         self.local_round_error = []
         self.running_training_error = []
         self.running_testing_error = []
+        self.test_auc = []
 
     def get_weak_learner(self, features, true_labels):
         return DecisionStump(self.decision_stump_type, features, true_labels)
 
-    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners):
+    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
+              delta=0.000001):
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
-        training_features = training_features.copy()
 
         alpha = []
         running_training_predictions = np.zeros(training_features.shape[0])
         running_testing_predictions = np.zeros(testing_features.shape[0])
 
-        for i in range(no_of_weak_learners):
+        for t in range(no_of_weak_learners):
+            training_features = training_features.copy()
             for i in range(training_features.shape[1]):
                 training_features[:, i] = training_features[:, i] * d_t
 
@@ -109,6 +112,7 @@ class AdaBoost:
 
             training_predictions = weak_learner.predict(training_features)
             epsilon_error = d_t[training_labels != training_predictions].sum()
+            self.local_round_error.append(epsilon_error)
 
             alpha_t = 0.5 * (np.log(1 - epsilon_error) - np.log(epsilon_error))
             alpha.append(alpha_t)
@@ -116,20 +120,36 @@ class AdaBoost:
             d_t = d_t * (np.exp(-alpha_t * training_labels * training_predictions))
             d_t = d_t / d_t.sum()
 
+            # calculating the running training error
             running_training_predictions += (training_predictions * alpha_t)
             running_training_prediction_labels = np.ones(training_features.shape[0])
             running_training_prediction_labels[running_training_predictions <= 0] = -1
 
-            running_training_error = accuracy_score(training_labels, running_training_prediction_labels)
+            running_training_error = 1 - accuracy_score(training_labels, running_training_prediction_labels)
             self.running_training_error.append(running_training_error)
 
+            # calculating the running testing error
             testing_predictions = weak_learner.predict(testing_features)
             running_testing_predictions += (testing_predictions * alpha_t)
             running_testing_prediction_labels = np.ones(testing_features.shape[0])
             running_testing_prediction_labels[running_testing_predictions <= 0] = -1
 
-            running_testing_error = accuracy_score(testing_labels, running_testing_prediction_labels)
+            running_testing_error = 1 - accuracy_score(testing_labels, running_testing_prediction_labels)
             self.running_testing_error.append(running_testing_error)
+
+            # calculating the testing auc
+            fpr, tpr, thresholds = roc_curve(testing_labels, running_testing_prediction_labels)
+            testing_auc = auc(fpr, tpr)
+            self.test_auc.append(testing_auc)
+
+            print(
+                "Round {}, Feature:{}, Threshold:{:.8f} Round Err:{:.8f}, Training Err:{:.8f}, Testing Err:{:.8f}, Testing AUC:{:.8f}"
+                    .format(t, weak_learner.predictor.feature_index,
+                            weak_learner.predictor.threshold,
+                            epsilon_error,
+                            running_training_error,
+                            running_testing_error,
+                            testing_auc))
 
         self.alpha = np.array(alpha)
 
@@ -141,6 +161,27 @@ class AdaBoost:
 
         return np.sum(np.transpose(np.array(h_t)) * self.alpha, axis=1)
 
+    def plot_metrics(self):
+        x = range(self.alpha.shape[0])
+        lw = 2
+        plt.plot(x, self.local_round_error, label="Local Round Err", lw=lw, color=np.random.rand(3))
+        plt.legend(loc=4)
+        plt.show()
+
+        plt.plot(x, self.running_training_error, label="Running Training Err", lw=lw, color="red")
+        plt.plot(x, self.running_testing_error, label="Running Testing Err", lw=lw, color="black")
+        plt.plot(x, self.test_auc, label="Test AUC", lw=lw, color="Orange")
+        plt.legend(loc=4)
+        plt.show()
+
+
+def plot_information(testing_labels, testing_predictions):
+    fpr, tpr, threshold = roc_curve(testing_labels, testing_predictions)
+    testing_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label="SpamBase Data Set, auc={}".format(testing_auc))
+    plt.legend(loc=4)
+    plt.show()
+
 
 def demo_ada_boost_with_optimal_decision_stump():
     data = utils.get_spam_data_for_ada_boost()
@@ -149,25 +190,29 @@ def demo_ada_boost_with_optimal_decision_stump():
 
     training_accuracy = []
     testing_accuracy = []
-    for data in folds:
-        training_features = data['features']['training']
-        training_labels = data['labels']['training']
-        testing_features = data['features']['testing']
-        testing_labels = data['labels']['testing']
+    i = 0
+    for data in folds[:1]:
+        training_features = data['training']['features']
+        training_labels = data['training']['labels']
+        testing_features = data['testing']['features']
+        testing_labels = data['testing']['labels']
 
-        ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
-        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 10)
+        # ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
+        ada_boost = AdaBoost(DecisionStumpType.RANDOM)
+        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 1000)
 
-        training_predictions = ada_boost.predict(training_features)
-        training_accuracy.append(accuracy_score(training_labels, training_predictions))
+        # training_predictions = ada_boost.predict(training_features)
+        # training_accuracy.append(accuracy_score(training_labels, training_predictions))
 
         testing_predictions = ada_boost.predict(testing_features)
-        testing_accuracy.append(accuracy_score(testing_labels, testing_predictions))
+        ada_boost.plot_metrics()
+        plot_information(testing_labels, testing_predictions)
+        # testing_accuracy.append(accuracy_score(testing_labels, testing_predictions))
 
-    print("Training Accuracy:", np.mean(training_accuracy))
-    print("Testing Accuracy:", np.mean(testing_accuracy))
+    # print("Training Accuracy:", np.mean(training_accuracy))
+    # print("Testing Accuracy:", np.mean(testing_accuracy))
 
 
 if __name__ == '__main__':
-    np.random.seed(11)
+    np.random.seed(1112)
     demo_ada_boost_with_optimal_decision_stump()

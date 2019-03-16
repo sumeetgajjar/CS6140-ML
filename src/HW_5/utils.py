@@ -23,6 +23,7 @@ def get_spam_data_for_ada_boost():
     labels = data['labels']
     labels[labels == 0] = -1
     data['labels'] = labels
+    return data
 
 
 def k_fold_split(k, data, seed=11, shuffle=False):
