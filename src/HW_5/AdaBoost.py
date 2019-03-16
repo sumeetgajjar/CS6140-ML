@@ -86,17 +86,20 @@ class AdaBoost:
         self.alpha = None
         self.weak_learners = []
         self.local_round_error = []
-        self.global_error = []
+        self.running_training_error = []
+        self.running_testing_error = []
 
     def get_weak_learner(self, features, true_labels):
         return DecisionStump(self.decision_stump_type, features, true_labels)
 
-    def train(self, training_features, training_labels, no_of_weak_learners):
+    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners):
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
         training_features = training_features.copy()
 
         alpha = []
-        global_error = 0
+        running_training_predictions = np.zeros(training_features.shape[0])
+        running_testing_predictions = np.zeros(testing_features.shape[0])
+
         for i in range(no_of_weak_learners):
             for i in range(training_features.shape[1]):
                 training_features[:, i] = training_features[:, i] * d_t
@@ -104,17 +107,29 @@ class AdaBoost:
             weak_learner = self.get_weak_learner(training_features, training_labels)
             self.weak_learners.append(weak_learner)
 
-            predicted_labels = weak_learner.predict(training_features)
-            epsilon_error = d_t[training_labels != predicted_labels].sum()
+            training_predictions = weak_learner.predict(training_features)
+            epsilon_error = d_t[training_labels != training_predictions].sum()
 
             alpha_t = 0.5 * (np.log(1 - epsilon_error) - np.log(epsilon_error))
             alpha.append(alpha_t)
 
-            d_t = d_t * (np.exp(-alpha_t * training_labels * predicted_labels))
+            d_t = d_t * (np.exp(-alpha_t * training_labels * training_predictions))
             d_t = d_t / d_t.sum()
 
-            global_error += np.sum(training_labels - (predicted_labels * alpha_t))
+            running_training_predictions += (training_predictions * alpha_t)
+            running_training_prediction_labels = np.ones(training_features.shape[0])
+            running_training_prediction_labels[running_training_predictions <= 0] = -1
 
+            running_training_error = accuracy_score(training_labels, running_training_prediction_labels)
+            self.running_training_error.append(running_training_error)
+
+            testing_predictions = weak_learner.predict(testing_features)
+            running_testing_predictions += (testing_predictions * alpha_t)
+            running_testing_prediction_labels = np.ones(testing_features.shape[0])
+            running_testing_prediction_labels[running_testing_predictions <= 0] = -1
+
+            running_testing_error = accuracy_score(testing_labels, running_testing_prediction_labels)
+            self.running_testing_error.append(running_testing_error)
 
         self.alpha = np.array(alpha)
 
@@ -141,7 +156,7 @@ def demo_ada_boost_with_optimal_decision_stump():
         testing_labels = data['labels']['testing']
 
         ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
-        ada_boost.train(training_features, training_labels, 10)
+        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 10)
 
         training_predictions = ada_boost.predict(training_features)
         training_accuracy.append(accuracy_score(training_labels, training_predictions))
