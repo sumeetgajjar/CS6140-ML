@@ -60,7 +60,7 @@ class DecisionStump:
                 predictor = Predictor(i, threshold)
                 y_predicted = predictor.predict(self.features)
 
-                error = np.sum(np.square(self.labels - y_predicted) * self.d_t)
+                error = np.mean(np.square(self.labels - y_predicted) * self.d_t)
                 goal = abs(0.5 - error)
 
                 if goal > optimal_goal:
@@ -96,8 +96,8 @@ class AdaBoost:
     def get_weak_learner(self, features, true_labels, d_t):
         return DecisionStump(self.decision_stump_type, features, true_labels, d_t)
 
-    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
-              delta=0.000001):
+    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners):
+        training_features = training_features.copy()
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
 
         alpha = []
@@ -105,10 +105,6 @@ class AdaBoost:
         running_testing_predictions = np.zeros(testing_features.shape[0])
 
         for t in range(1, no_of_weak_learners + 1):
-            training_features = training_features.copy()
-            # for i in range(training_features.shape[1]):
-            #     training_features[:, i] = training_features[:, i] * d_t
-
             weak_learner = self.get_weak_learner(training_features, training_labels, d_t)
             self.weak_learners.append(weak_learner)
 
@@ -147,7 +143,7 @@ class AdaBoost:
             self.test_auc.append(testing_auc)
 
             print(
-                "Round {}, Feature:{}, Threshold:{} Round Err:{:.8f}, Training Err:{:.8f}, Testing Err:{:.8f}, Testing AUC:{:.8f}"
+                "Round {}, Feature:{}, Threshold:{} Round Err:{}, Training Err:{}, Testing Err:{}, Testing AUC:{}"
                     .format(t, weak_learner.predictor.feature_index,
                             weak_learner.predictor.threshold,
                             epsilon_error,
@@ -192,31 +188,40 @@ def demo_ada_boost_with_optimal_decision_stump():
     k = 10
     folds = utils.k_fold_split(k, data, seed=11, shuffle=True)
 
-    training_accuracy = []
-    testing_accuracy = []
-    i = 0
     for data in folds[:1]:
         training_features = data['training']['features']
         training_labels = data['training']['labels']
         testing_features = data['testing']['features']
         testing_labels = data['testing']['labels']
 
-        # ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
-        ada_boost = AdaBoost(DecisionStumpType.RANDOM)
-        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 200)
-
-        # training_predictions = ada_boost.predict(training_features)
-        # training_accuracy.append(accuracy_score(training_labels, training_predictions))
+        ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
+        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 50)
 
         testing_predictions = ada_boost.predict(testing_features)
         ada_boost.plot_metrics()
         plot_information(testing_labels, testing_predictions)
-        # testing_accuracy.append(accuracy_score(testing_labels, testing_predictions))
 
-    # print("Training Accuracy:", np.mean(training_accuracy))
-    # print("Testing Accuracy:", np.mean(testing_accuracy))
+
+def demo_ada_boost_with_random_decision_stump():
+    data = utils.get_spam_data_for_ada_boost()
+    k = 10
+    folds = utils.k_fold_split(k, data, seed=11, shuffle=True)
+
+    for data in folds[:1]:
+        training_features = data['training']['features']
+        training_labels = data['training']['labels']
+        testing_features = data['testing']['features']
+        testing_labels = data['testing']['labels']
+
+        ada_boost = AdaBoost(DecisionStumpType.RANDOM)
+        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 2000)
+
+        testing_predictions = ada_boost.predict(testing_features)
+        ada_boost.plot_metrics()
+        plot_information(testing_labels, testing_predictions)
 
 
 if __name__ == '__main__':
     np.random.seed(2)
+    # demo_ada_boost_with_random_decision_stump()
     demo_ada_boost_with_optimal_decision_stump()
