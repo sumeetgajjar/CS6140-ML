@@ -27,11 +27,12 @@ class DecisionStumpType(Enum):
 
 class DecisionStump:
 
-    def __init__(self, decision_stump_type, features, labels) -> None:
+    def __init__(self, decision_stump_type, features, labels, d_t) -> None:
         super().__init__()
         self.decision_stump_type = decision_stump_type
         self.features = features
         self.labels = labels
+        self.d_t = d_t
         self.predictor = None
         self.__initialize()
 
@@ -48,7 +49,7 @@ class DecisionStump:
         return np.append(np.unique(all_values), [np.min(all_values) - 1, np.max(all_values) + 1])
 
     def find_optimal_decision_stump(self):
-        optimal_error = 0
+        optimal_goal = 0
         best_predictor = None
 
         for i in range(self.features.shape[1]):
@@ -58,11 +59,12 @@ class DecisionStump:
             for threshold in sorted_unique_thresholds:
                 predictor = Predictor(i, threshold)
                 y_predicted = predictor.predict(self.features)
-                error = 1 - accuracy_score(self.labels, y_predicted)
-                error = abs(0.5 - error)
 
-                if error > optimal_error:
-                    optimal_error = error
+                error = np.sum(np.square(self.labels - y_predicted) * self.d_t)
+                goal = abs(0.5 - error)
+
+                if goal > optimal_goal:
+                    optimal_goal = goal
                     best_predictor = predictor
 
         self.predictor = best_predictor
@@ -91,8 +93,8 @@ class AdaBoost:
         self.running_testing_error = []
         self.test_auc = []
 
-    def get_weak_learner(self, features, true_labels):
-        return DecisionStump(self.decision_stump_type, features, true_labels)
+    def get_weak_learner(self, features, true_labels, d_t):
+        return DecisionStump(self.decision_stump_type, features, true_labels, d_t)
 
     def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
               delta=0.000001):
@@ -102,12 +104,12 @@ class AdaBoost:
         running_training_predictions = np.zeros(training_features.shape[0])
         running_testing_predictions = np.zeros(testing_features.shape[0])
 
-        for t in range(no_of_weak_learners):
+        for t in range(1, no_of_weak_learners + 1):
             training_features = training_features.copy()
-            for i in range(training_features.shape[1]):
-                training_features[:, i] = training_features[:, i] * d_t
+            # for i in range(training_features.shape[1]):
+            #     training_features[:, i] = training_features[:, i] * d_t
 
-            weak_learner = self.get_weak_learner(training_features, training_labels)
+            weak_learner = self.get_weak_learner(training_features, training_labels, d_t)
             self.weak_learners.append(weak_learner)
 
             training_predictions = weak_learner.predict(training_features)
@@ -117,13 +119,15 @@ class AdaBoost:
             alpha_t = 0.5 * (np.log(1 - epsilon_error) - np.log(epsilon_error))
             alpha.append(alpha_t)
 
-            d_t = d_t * (np.exp(-alpha_t * training_labels * training_predictions))
-            d_t = d_t / d_t.sum()
+            gamma_t = 0.5 - epsilon_error
+            z_t = np.sqrt(1 - (4 * np.square(gamma_t)))
+
+            d_t = d_t * (np.exp(-alpha_t * training_labels * training_predictions)) / z_t
 
             # calculating the running training error
             running_training_predictions += (training_predictions * alpha_t)
             running_training_prediction_labels = np.ones(training_features.shape[0])
-            running_training_prediction_labels[running_training_predictions <= 0] = -1
+            running_training_prediction_labels[running_training_predictions < 0] = -1
 
             running_training_error = 1 - accuracy_score(training_labels, running_training_prediction_labels)
             self.running_training_error.append(running_training_error)
@@ -132,7 +136,7 @@ class AdaBoost:
             testing_predictions = weak_learner.predict(testing_features)
             running_testing_predictions += (testing_predictions * alpha_t)
             running_testing_prediction_labels = np.ones(testing_features.shape[0])
-            running_testing_prediction_labels[running_testing_predictions <= 0] = -1
+            running_testing_prediction_labels[running_testing_predictions < 0] = -1
 
             running_testing_error = 1 - accuracy_score(testing_labels, running_testing_prediction_labels)
             self.running_testing_error.append(running_testing_error)
@@ -143,7 +147,7 @@ class AdaBoost:
             self.test_auc.append(testing_auc)
 
             print(
-                "Round {}, Feature:{}, Threshold:{:.8f} Round Err:{:.8f}, Training Err:{:.8f}, Testing Err:{:.8f}, Testing AUC:{:.8f}"
+                "Round {}, Feature:{}, Threshold:{} Round Err:{:.8f}, Training Err:{:.8f}, Testing Err:{:.8f}, Testing AUC:{:.8f}"
                     .format(t, weak_learner.predictor.feature_index,
                             weak_learner.predictor.threshold,
                             epsilon_error,
@@ -199,7 +203,7 @@ def demo_ada_boost_with_optimal_decision_stump():
 
         # ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
         ada_boost = AdaBoost(DecisionStumpType.RANDOM)
-        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 1000)
+        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 200)
 
         # training_predictions = ada_boost.predict(training_features)
         # training_accuracy.append(accuracy_score(training_labels, training_predictions))
@@ -214,5 +218,5 @@ def demo_ada_boost_with_optimal_decision_stump():
 
 
 if __name__ == '__main__':
-    np.random.seed(1112)
+    np.random.seed(2)
     demo_ada_boost_with_optimal_decision_stump()
