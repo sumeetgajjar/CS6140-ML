@@ -2,6 +2,8 @@ import re
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
+from sklearn.metrics import roc_curve, auc
 
 ROOT = '../../'
 
@@ -163,7 +165,7 @@ class UciDataParser:
 
     def parse_data(self):
         no_of_features = self.config['features']['size']['all']
-        data = pd.read_csv(self.__get_data_file_path() % ROOT, header=None)
+        data = pd.read_csv(self.__get_data_file_path(), delimiter="\\s+", header=None)
         if data.shape[1] != no_of_features + 1:
             raise Exception('Data Inconsistent with the config')
 
@@ -171,6 +173,28 @@ class UciDataParser:
             if index in self.config['features']:
                 data[index].replace(to_replace=self.config['features'][index]['mapping'], inplace=True)
 
-        data[no_of_features].replace(to_replace=self.config['features']['labels']['mapping'], inplace=True)
+            data[index].replace('?', np.nan, inplace=True)
 
-        return data
+        data[no_of_features].replace(to_replace=self.config['labels']['mapping'], inplace=True)
+        data[no_of_features].replace(0, -1, inplace=True)
+
+        features = np.array(data.iloc[:, :-1])
+        labels = np.array(data.iloc[:, -1])
+
+        if features.shape[0] != labels.shape[0]:
+            raise Exception("Mismatch in Feature Tuples(%d) and Label Tuples(%d)" % (features.size, labels.size))
+
+        features.astype(np.float, copy=False)
+
+        return {
+            'features': features,
+            'labels': labels
+        }
+
+
+def plot_roc_curve(testing_labels, testing_predictions):
+    fpr, tpr, threshold = roc_curve(testing_labels, testing_predictions)
+    testing_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label="SpamBase Data Set, auc={}".format(testing_auc))
+    plt.legend(loc=4)
+    plt.show()

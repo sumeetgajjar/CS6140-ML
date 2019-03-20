@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import accuracy_score, auc, roc_curve
 
-from HW_5 import utils
-
 
 class Predictor:
 
@@ -175,53 +173,3 @@ class AdaBoost:
         plt.show()
 
 
-def plot_information(testing_labels, testing_predictions):
-    fpr, tpr, threshold = roc_curve(testing_labels, testing_predictions)
-    testing_auc = auc(fpr, tpr)
-    plt.plot(fpr, tpr, label="SpamBase Data Set, auc={}".format(testing_auc))
-    plt.legend(loc=4)
-    plt.show()
-
-
-def demo_ada_boost_with_optimal_decision_stump():
-    data = utils.get_spam_data_for_ada_boost()
-    k = 10
-    folds = utils.k_fold_split(k, data, seed=11, shuffle=True)
-
-    for data in folds[:1]:
-        training_features = data['training']['features']
-        training_labels = data['training']['labels']
-        testing_features = data['testing']['features']
-        testing_labels = data['testing']['labels']
-
-        ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
-        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 200)
-
-        testing_predictions = ada_boost.predict(testing_features)
-        ada_boost.plot_metrics()
-        plot_information(testing_labels, testing_predictions)
-
-
-def demo_ada_boost_with_random_decision_stump():
-    data = utils.get_spam_data_for_ada_boost()
-    k = 10
-    folds = utils.k_fold_split(k, data, seed=11, shuffle=True)
-
-    for data in folds[:1]:
-        training_features = data['training']['features']
-        training_labels = data['training']['labels']
-        testing_features = data['testing']['features']
-        testing_labels = data['testing']['labels']
-
-        ada_boost = AdaBoost(DecisionStumpType.RANDOM)
-        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 2000)
-
-        testing_predictions = ada_boost.predict(testing_features)
-        ada_boost.plot_metrics()
-        plot_information(testing_labels, testing_predictions)
-
-
-if __name__ == '__main__':
-    np.random.seed(11)
-    # demo_ada_boost_with_random_decision_stump()
-    demo_ada_boost_with_optimal_decision_stump()
