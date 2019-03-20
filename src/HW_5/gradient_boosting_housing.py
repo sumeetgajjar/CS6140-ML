@@ -40,10 +40,12 @@ def demo_gradient_boosted_trees_on_housing():
     testing_features = data['testing']['features']
     testing_prices = data['testing']['prices']
 
-    regressor = GradientBoosting(5)
+    regressor = GradientBoosting(6)
     regressor.train(training_features, training_prices)
 
     predicted_training_prices = regressor.predict(training_features)
+
+    print()
     print("Training MSE without Boosting:",
           mean_squared_error(training_prices, regressor.regressors[0].predict(training_features)))
     print("Training MSE with Boosting:", mean_squared_error(training_prices, predicted_training_prices))
