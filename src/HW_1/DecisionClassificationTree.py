@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def get_spam_data():
-    data = pd.read_csv('data/spam-email/spambase.data', header=None)
+    data = pd.read_csv('../../data/spam-email/spambase.data', header=None)
     features = np.array(data.iloc[:, 0:57])
     labels = np.array(data.iloc[:, 57])
 
