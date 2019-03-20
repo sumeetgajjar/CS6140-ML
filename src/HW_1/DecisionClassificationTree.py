@@ -116,6 +116,14 @@ class Node(object):
         else:
             return self.right.predict_label(feature_vector)
 
+    def predict(self, features):
+        predictions = []
+        for feature in features:
+            prediction = self.predict_label(feature)
+            predictions.append(prediction)
+
+        return np.array(predictions)
+
 
 def create_tree_util(current_level, feature_vectors, labels, min_sample_size, max_depth):
     if labels.size < min_sample_size or current_level > max_depth:
