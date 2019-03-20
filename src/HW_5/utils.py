@@ -3,7 +3,7 @@ import re
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, accuracy_score
 
 ROOT = '../../'
 
@@ -192,9 +192,25 @@ class UciDataParser:
         }
 
 
-def plot_roc_curve(testing_labels, testing_predictions):
-    fpr, tpr, threshold = roc_curve(testing_labels, testing_predictions)
+def plot_roc_curve(true_labels, predictions):
+    fpr, tpr, threshold = roc_curve(true_labels, predictions)
     testing_auc = auc(fpr, tpr)
     plt.plot(fpr, tpr, label="SpamBase Data Set, auc={}".format(testing_auc))
     plt.legend(loc=4)
     plt.show()
+
+
+def convert_predictions_to_labels(true_labels, predictions):
+    fpr, tpr, thresholds = roc_curve(true_labels, predictions)
+
+    best_predicted_labels = None
+    max_accuracy = 0
+    for threshold in thresholds:
+        predicted_labels = np.ones(true_labels.shape[0])
+        predicted_labels[predictions <= threshold] = -1
+        current_accuracy = accuracy_score(true_labels, predicted_labels)
+        if current_accuracy > max_accuracy:
+            max_accuracy = current_accuracy
+            best_predicted_labels = predicted_labels
+
+    return max_accuracy, best_predicted_labels

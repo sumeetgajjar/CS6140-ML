@@ -94,7 +94,8 @@ class AdaBoost:
     def get_weak_learner(self, features, true_labels, d_t):
         return DecisionStump(self.decision_stump_type, features, true_labels, d_t)
 
-    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners):
+    def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
+              display_step=100):
         training_features = training_features.copy()
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
 
@@ -140,14 +141,15 @@ class AdaBoost:
             testing_auc = auc(fpr, tpr)
             self.test_auc.append(testing_auc)
 
-            print(
-                "Round {}, Feature:{}, Threshold:{} Round Err:{}, Training Err:{}, Testing Err:{}, Testing AUC:{}"
-                    .format(t, weak_learner.predictor.feature_index,
-                            weak_learner.predictor.threshold,
-                            epsilon_error,
-                            running_training_error,
-                            running_testing_error,
-                            testing_auc))
+            if t % display_step == 0 or t == 1:
+                print(
+                    "Round {}, Feature:{}, Threshold:{} Round Err:{}, Training Err:{}, Testing Err:{}, Testing AUC:{}"
+                        .format(t, weak_learner.predictor.feature_index,
+                                weak_learner.predictor.threshold,
+                                epsilon_error,
+                                running_training_error,
+                                running_testing_error,
+                                testing_auc))
 
         self.alpha = np.array(alpha)
 
@@ -171,5 +173,3 @@ class AdaBoost:
         plt.plot(x, self.test_auc, label="Test AUC", lw=lw, color="Orange")
         plt.legend(loc=4)
         plt.show()
-
-
