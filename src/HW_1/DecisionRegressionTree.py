@@ -38,6 +38,14 @@ class Node(object):
         else:
             return self.right.predict_price(feature_vector)
 
+    def predict(self, features):
+        predictions = []
+        for feature in features:
+            prediction = self.predict_price(feature)
+            predictions.append(prediction)
+
+        return np.array(predictions)
+
 
 def normalize_data(data):
     feature_vectors = data['features'];
@@ -65,11 +73,11 @@ def normalize_data(data):
 
 
 def get_housing_data():
-    training_data = pd.read_csv('data/housing/housing_train.txt', delimiter='\\s+', header=None)
+    training_data = pd.read_csv('../../data/housing/housing_train.txt', delimiter='\\s+', header=None)
     training_features = np.array(training_data.iloc[:, 0:13])
     training_labels = np.array(training_data.iloc[:, 13])
 
-    testing_data = pd.read_csv('data/housing/housing_test.txt', delimiter='\\s+', header=None)
+    testing_data = pd.read_csv('../../data/housing/housing_test.txt', delimiter='\\s+', header=None)
     testing_features = np.array(testing_data.iloc[:, 0:13])
     testing_labels = np.array(testing_data.iloc[:, 13])
 

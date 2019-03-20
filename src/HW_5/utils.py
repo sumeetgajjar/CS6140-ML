@@ -30,6 +30,35 @@ def get_spam_data_for_ada_boost():
     return data
 
 
+def get_housing_data():
+    training_data = pd.read_csv('%sdata/housing/housing_train.txt' % ROOT, delimiter='\\s+', header=None)
+    training_features = np.array(training_data.iloc[:, 0:13])
+    training_labels = np.array(training_data.iloc[:, 13])
+
+    testing_data = pd.read_csv('%sdata/housing/housing_test.txt' % ROOT, delimiter='\\s+', header=None)
+    testing_features = np.array(testing_data.iloc[:, 0:13])
+    testing_labels = np.array(testing_data.iloc[:, 13])
+
+    if training_features.shape[0] != training_labels.shape[0]:
+        raise Exception("Mismatch in Training Feature Tuples(%s) and Label Tuples(%s)" % (
+            training_features.shape, training_labels.shape))
+
+    if testing_features.shape[0] != testing_labels.shape[0]:
+        raise Exception("Mismatch in Testing Feature Tuples(%s) and Label Tuples(%s)" % (
+            testing_features.shape, testing_labels.shape))
+
+    return {
+        'training': {
+            'features': training_features,
+            'prices': training_labels
+        },
+        'testing': {
+            'features': testing_features,
+            'prices': testing_labels
+        }
+    }
+
+
 def k_fold_split(k, data, seed=11, shuffle=False):
     sample_size = data['features'].shape[0]
 
