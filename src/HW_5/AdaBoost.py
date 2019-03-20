@@ -96,7 +96,7 @@ class AdaBoost:
 
     def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
               display_step=100):
-        training_features = training_features.copy()
+
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
 
         alpha = []
@@ -111,7 +111,8 @@ class AdaBoost:
             epsilon_error = d_t[training_labels != training_predictions].sum()
             self.local_round_error.append(epsilon_error)
 
-            alpha_t = 0.5 * (np.log(1 - epsilon_error) - np.log(epsilon_error))
+            log = 0 if epsilon_error == 1 else np.log(1 - epsilon_error)
+            alpha_t = 0.5 * (log - np.log(epsilon_error))
             alpha.append(alpha_t)
 
             gamma_t = 0.5 - epsilon_error

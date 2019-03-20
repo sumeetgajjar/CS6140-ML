@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 from sklearn.impute import SimpleImputer
 
 from HW_5 import utils
@@ -82,7 +83,7 @@ def demo_uci_vote_optimal_decision_stump():
     print()
 
 
-def demo_uci_crx_optimal_decision_stump_for_c_percent_data():
+def demo_uci_vote_optimal_decision_stump_for_c_percent_data():
     parser = UciDataParser('vote')
     data = parser.parse_data()
     config = parser.config
@@ -97,20 +98,39 @@ def demo_uci_crx_optimal_decision_stump_for_c_percent_data():
         testing_features = data['testing']['features']
         testing_labels = data['testing']['labels']
 
-        for c in [5, 10, 15, 20, 30, 50, 80]:
-            data_points = np.ceil((c / 100) * training_features.shape[0])
-            training_features = training_features[:data_points]
-            training_labels = training_labels[:data_points]
+        training_acc = []
+        testing_acc = []
+        proportions = [5, 10, 15, 20, 30, 50, 80]
+        for c in proportions:
+            print("+" * 40, "%s %% Training data" % c, "+" * 20)
+            data_points = int(np.ceil((c / 100) * training_features.shape[0]))
+            training_features_subset = training_features[:data_points]
+            training_labels_subset = training_labels[:data_points]
 
             ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
-            ada_boost.train(training_features, training_labels, testing_features, testing_labels, 20)
+            ada_boost.train(training_features_subset, training_labels_subset, testing_features, testing_labels, 20, 5)
+
+            training_predictions = ada_boost.predict(training_features_subset)
+            acc, labels = utils.convert_predictions_to_labels(training_labels_subset, training_predictions)
+            training_acc.append(acc)
 
             testing_predictions = ada_boost.predict(testing_features)
+            acc, labels = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
+            testing_acc.append(acc)
+
             ada_boost.plot_metrics()
-            utils.plot_roc_curve(testing_labels, testing_predictions)
+            print()
+
+        print("Training Acc:", training_acc)
+        print("Testing Acc:", testing_acc)
+        plt.plot(list(range(len(proportions))), training_acc, label="Training Acc", c="Orange")
+        plt.plot(list(range(len(proportions))), testing_acc, label="Testing Acc", c="Blue")
+        plt.legend(loc=4)
+        plt.show()
 
 
 if __name__ == '__main__':
     np.random.seed(2)
-    demo_uci_crx_optimal_decision_stump()
-    demo_uci_vote_optimal_decision_stump()
+    # demo_uci_crx_optimal_decision_stump()
+    # demo_uci_vote_optimal_decision_stump()
+    demo_uci_vote_optimal_decision_stump_for_c_percent_data()
