@@ -45,7 +45,7 @@ def demo_ada_boost_with_random_decision_stump():
         ada_boost.plot_metrics()
         utils.plot_roc_curve(testing_labels, testing_predictions)
 
-        acc, labels = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
+        acc, labels, thr = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
         print("Testing Accuracy:", acc)
 
     print("+" * 40, "Random Decision Stump", "+" * 40)

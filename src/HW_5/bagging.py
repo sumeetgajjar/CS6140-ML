@@ -55,14 +55,14 @@ def demo_bagging_on_spam():
     print("Training Accuracy without Bagging:", acc)
 
     training_predictions = classifier.predict(training_features)
-    acc, labels = utils.convert_predictions_to_labels(training_labels, training_predictions)
+    acc, labels, thr = utils.convert_predictions_to_labels(training_labels, training_predictions)
     print("Training Accuracy with Bagging:", acc)
 
     acc = accuracy_score(testing_labels, classifier.classifiers[0].predict(testing_features))
     print("Testing Accuracy without Bagging:", acc)
 
     testing_predictions = classifier.predict(testing_features)
-    acc, labels = utils.convert_predictions_to_labels(testing_labels, testing_predictions, 0)
+    acc, labels, thr = utils.convert_predictions_to_labels(testing_labels, testing_predictions, 0)
     print("Testing Accuracy with Bagging:", acc)
 
     utils.plot_roc_curve(testing_labels, testing_predictions)

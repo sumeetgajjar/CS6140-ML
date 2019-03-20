@@ -234,6 +234,7 @@ def convert_predictions_to_labels(true_labels, predictions, negative_label_value
 
     best_predicted_labels = None
     max_accuracy = 0
+    best_threshold = None
     for threshold in thresholds:
         predicted_labels = np.ones(true_labels.shape[0])
         predicted_labels[predictions <= threshold] = negative_label_value
@@ -241,5 +242,6 @@ def convert_predictions_to_labels(true_labels, predictions, negative_label_value
         if current_accuracy > max_accuracy:
             max_accuracy = current_accuracy
             best_predicted_labels = predicted_labels
+            best_threshold = threshold
 
-    return max_accuracy, best_predicted_labels
+    return max_accuracy, best_predicted_labels, best_threshold

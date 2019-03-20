@@ -46,7 +46,7 @@ def demo_uci_crx_optimal_decision_stump():
         ada_boost.plot_metrics()
         utils.plot_roc_curve(testing_labels, testing_predictions)
 
-        acc, labels = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
+        acc, labels, thr = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
         print("Testing Accuracy: ", acc)
 
     print("+" * 40, "CRX", "+" * 40)
@@ -76,7 +76,7 @@ def demo_uci_vote_optimal_decision_stump():
         ada_boost.plot_metrics()
         utils.plot_roc_curve(testing_labels, testing_predictions)
 
-        acc, labels = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
+        acc, labels, thr = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
         print("Testing Accuracy: ", acc)
 
     print("+" * 40, "VOTE", "+" * 40)
@@ -111,11 +111,11 @@ def demo_uci_vote_optimal_decision_stump_for_c_percent_data():
             ada_boost.train(training_features_subset, training_labels_subset, testing_features, testing_labels, 20, 5)
 
             training_predictions = ada_boost.predict(training_features_subset)
-            acc, labels = utils.convert_predictions_to_labels(training_labels_subset, training_predictions)
+            acc, labels, thr = utils.convert_predictions_to_labels(training_labels_subset, training_predictions)
             training_acc.append(acc)
 
             testing_predictions = ada_boost.predict(testing_features)
-            acc, labels = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
+            acc, labels, thr = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
             testing_acc.append(acc)
 
             ada_boost.plot_metrics()
