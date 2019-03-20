@@ -50,6 +50,7 @@ def demo_bagging_on_spam():
     classifier = Bagging(bags)
     classifier.train(training_features, training_labels, N)
 
+    print()
     acc = accuracy_score(training_labels, classifier.classifiers[0].predict(training_features))
     print("Training Accuracy without Bagging:", acc)
 
