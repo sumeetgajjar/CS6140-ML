@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 import pandas as pd
 
@@ -94,3 +96,81 @@ def normalize_data_using_shift_and_scale(feature_vectors):
         i += 1
 
     return feature_vectors
+
+
+class UciDataParser:
+
+    def __init__(self, file) -> None:
+        super().__init__()
+        self.file = file
+        self.config = self.__parse_config()
+
+    def __parse_config(self):
+        config = {}
+        with open(self.__get_config_file_path(), mode='r') as handle:
+            header = handle.readline().strip()
+            splits = re.split("\\s+", header)
+            if len(splits) != 3:
+                raise Exception("Invalid Config File")
+
+            config['data'] = {
+                'size': int(splits[0])
+            }
+            config['features'] = {
+                'size': {
+                    'discrete': int(splits[1]),
+                    'continuous': int(splits[2]),
+                    'all': int(splits[1]) + int(splits[2])
+                }
+            }
+
+            categorical = set()
+            numeric = set()
+            for index in range(config['features']['size']['all']):
+                line = handle.readline().strip()
+                if not line.startswith("-1000"):
+                    splits = re.split("\\s+", line)
+                    config['features'][index] = {
+                        'distinct_values': int(splits[0]),
+                        'mapping': {value: i for i, value in enumerate(sorted(splits[1:]))}
+                    }
+
+                    if config['features'][index]['distinct_values'] != len(config['features'][index]['mapping']):
+                        raise Exception("Invalid Config File")
+
+                    categorical.add(index)
+                else:
+                    numeric.add(index)
+
+            config['features']['type'] = {
+                'categorical': categorical,
+                'numeric': numeric
+            }
+
+            splits = re.split("\\s+", handle.readline().strip())
+            config['labels'] = {
+                'distinct_values': int(splits[0]),
+                'mapping': {value: i for i, value in enumerate(sorted(splits[1:]))}
+            }
+
+        return config
+
+    def __get_config_file_path(self):
+        return '%sdata/%s/%s.config' % (ROOT, self.file, self.file)
+
+    def __get_data_file_path(self):
+        return '%sdata/%s/%s.data' % (ROOT, self.file, self.file)
+
+    def parse_data(self):
+        no_of_features = self.config['features']['size']['all']
+        data = pd.read_csv(self.__get_data_file_path() % ROOT, header=None)
+        if data.shape[1] != no_of_features + 1:
+            raise Exception('Data Inconsistent with the config')
+
+        for index in range(no_of_features):
+            if index in self.config['features']:
+                data[index].replace(to_replace=self.config['features'][index]['mapping'], inplace=True)
+
+        data[no_of_features].replace(to_replace=self.config['features']['labels']['mapping'], inplace=True)
+
+        return data

@@ -195,7 +195,7 @@ def demo_ada_boost_with_optimal_decision_stump():
         testing_labels = data['testing']['labels']
 
         ada_boost = AdaBoost(DecisionStumpType.OPTIMAL)
-        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 50)
+        ada_boost.train(training_features, training_labels, testing_features, testing_labels, 200)
 
         testing_predictions = ada_boost.predict(testing_features)
         ada_boost.plot_metrics()
@@ -222,6 +222,6 @@ def demo_ada_boost_with_random_decision_stump():
 
 
 if __name__ == '__main__':
-    np.random.seed(2)
+    np.random.seed(11)
     # demo_ada_boost_with_random_decision_stump()
     demo_ada_boost_with_optimal_decision_stump()
