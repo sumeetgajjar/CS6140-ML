@@ -16,11 +16,13 @@ class ECOC:
         self.__train(training_features, training_labels, testing_features, testing_labels)
 
     def __train(self, training_features, training_labels, testing_features, testing_labels):
+        print("+" * 40, "Converting the labels into codes", "+" * 40)
         no_of_bits, training_codes, testing_codes, code_label_mapping = self.__convert_labels_to_codes(training_labels,
                                                                                                        testing_labels,
                                                                                                        8)
 
         for i in range(no_of_bits):
+            print("+" * 40, "Training Classifier :", i + 1, "+" * 40)
             classifier = self.__train_classifier_for_one_bit(training_features, training_codes[:, i],
                                                              testing_features, testing_codes[:, i])
             self.classifiers.append(classifier)
@@ -31,8 +33,8 @@ class ECOC:
 
     @staticmethod
     def __train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels):
-        classifier = AdaBoost(DecisionStumpType.OPTIMAL)
-        classifier.train(training_features, training_labels, testing_features, testing_labels, 20, 5)
+        classifier = AdaBoost(DecisionStumpType.RANDOM)
+        classifier.train(training_features, training_labels, testing_features, testing_labels, 2000, 1000)
         return classifier
 
     def __get_thresholds(self, features, labels):
@@ -63,7 +65,7 @@ class ECOC:
         predicted_codes = np.transpose(predicted_codes)
 
         min_distance = np.ones(features.shape[0]) * self.no_of_bits
-        predicted_labels = np.zeros(features.shape[0])
+        predicted_labels = np.ones(features.shape[0]) * -1
         for (code, label) in self.code_label_mapping:
             distance = np.count_nonzero(np.subtract(predicted_codes, code), axis=1)
             min_distance_mask = distance < min_distance
@@ -77,12 +79,12 @@ class ECOC:
         labels = np.unique(training_labels)
         no_of_bits, codes = self.generate_ecoc_exhaustive_code(no_of_classes)
 
-        training_codes = np.zeros(training_labels.shape[0])
-        testing_codes = np.zeros(testing_labels.shape[0])
+        training_codes = np.ones((training_labels.shape[0], no_of_bits))
+        testing_codes = np.ones((testing_labels.shape[0], no_of_bits))
         code_label_mapping = []
         for label, code in zip(labels, codes):
-            training_codes[training_labels == label] = code
-            testing_codes[testing_labels == label] = code
+            training_codes[training_labels == label] *= code
+            testing_codes[testing_labels == label] *= code
             code_label_mapping.append((code, label))
 
         return no_of_bits, training_codes, testing_codes, code_label_mapping
@@ -110,6 +112,7 @@ class ECOC:
 
 
 def demo_ecoc_on_8_news_group_data():
+    print("+" * 40, "Parsing Data", "+" * 40)
     data = NewsGroupDataParser().parse_data()
     training_features = data['training']['features']
     training_labels = data['training']['labels']
