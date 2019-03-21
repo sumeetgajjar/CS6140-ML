@@ -1,16 +1,91 @@
 import numpy as np
+from sklearn.metrics import accuracy_score
+
+from HW_5 import utils
+from HW_5.AdaBoost import AdaBoost, DecisionStumpType
+from HW_5.utils import NewsGroupDataParser
 
 
 class ECOC:
 
-    def __init__(self) -> None:
+    def __init__(self, training_features, training_labels, testing_features, testing_labels) -> None:
         super().__init__()
+        self.code_label_mapping = None
+        self.thresholds = None
+        self.classifiers = []
+        self.__train(training_features, training_labels, testing_features, testing_labels)
 
-    def train(self):
-        pass
+    def __train(self, training_features, training_labels, testing_features, testing_labels):
+        no_of_bits, training_codes, testing_codes, code_label_mapping = self.__convert_labels_to_codes(training_labels,
+                                                                                                       testing_labels,
+                                                                                                       8)
 
-    def predict(self):
-        pass
+        for i in range(no_of_bits):
+            classifier = self.__train_classifier_for_one_bit(training_features, training_codes[:, i],
+                                                             testing_features, testing_codes[:, i])
+            self.classifiers.append(classifier)
+
+        self.no_of_bits = no_of_bits
+        self.code_label_mapping = code_label_mapping
+        self.thresholds = self.__get_thresholds(testing_features, testing_codes)
+
+    @staticmethod
+    def __train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels):
+        classifier = AdaBoost(DecisionStumpType.OPTIMAL)
+        classifier.train(training_features, training_labels, testing_features, testing_labels, 20, 5)
+        return classifier
+
+    def __get_thresholds(self, features, labels):
+        thresholds = []
+
+        i = 1
+        for classifier in self.classifiers:
+            prediction = classifier.predict(features)
+            acc, labels, thr = utils.convert_predictions_to_labels(labels, prediction)
+            thresholds.append(thr)
+
+            print("Classifier:{}, Accuracy:{}, Threshold:{}", i, acc, thr)
+            i += 1
+
+        return np.array(thresholds)
+
+    def predict(self, features):
+
+        i = 0
+        predicted_codes = []
+        for classifier in self.classifiers:
+            prediction = classifier.predict(features)
+            code = np.ones(features.shape[0])
+            code[prediction <= self.thresholds[i]] = -1
+
+            predicted_codes.append(code)
+
+        predicted_codes = np.transpose(predicted_codes)
+
+        min_distance = np.ones(features.shape[0]) * self.no_of_bits
+        predicted_labels = np.zeros(features.shape[0])
+        for (code, label) in self.code_label_mapping:
+            distance = np.count_nonzero(np.subtract(predicted_codes, code), axis=1)
+            min_distance_mask = distance < min_distance
+
+            predicted_labels[min_distance_mask] = label
+            min_distance[min_distance_mask] = distance[min_distance_mask]
+
+        return predicted_labels
+
+    def __convert_labels_to_codes(self, training_labels, testing_labels, no_of_classes):
+        labels = np.unique(training_labels)
+        no_of_bits, codes = self.generate_ecoc_exhaustive_code(no_of_classes)
+
+        training_codes = np.zeros(training_labels.shape[0])
+        testing_codes = np.zeros(testing_labels.shape[0])
+        code_label_mapping = []
+        for label, code in zip(labels, codes):
+            training_codes[training_labels == label] = code
+            testing_codes[testing_labels == label] = code
+            code_label_mapping.append((code, label))
+
+        return no_of_bits, training_codes, testing_codes, code_label_mapping
 
     @staticmethod
     def generate_ecoc_exhaustive_code(no_of_classes):
@@ -23,19 +98,27 @@ class ECOC:
 
             code = []
             for j in range(2 ** (i - 2)):
-                code.extend(np.zeros(no_of_zeros).tolist())
-                code.extend(np.ones(no_of_ones).tolist())
+                code.extend([-1] * no_of_zeros)
+                code.extend([1] * no_of_ones)
 
             codes.append(code)
 
+        no_of_bits -= 1
         codes = np.array(codes)
         codes = codes[:, :-1].copy()
-        return codes
+        return no_of_bits, codes
 
 
 def demo_ecoc_on_8_news_group_data():
-    codes = ECOC.generate_ecoc_exhaustive_code(5)
-    print(codes.shape)
+    data = NewsGroupDataParser().parse_data()
+    training_features = data['training']['features']
+    training_labels = data['training']['labels']
+    testing_features = data['testing']['features']
+    testing_labels = data['testing']['labels']
+
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels)
+    predicted_labels = classifier.predict(testing_features)
+    print("Testing Accuracy:", accuracy_score(testing_labels, predicted_labels))
 
 
 if __name__ == '__main__':

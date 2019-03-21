@@ -245,3 +245,60 @@ def convert_predictions_to_labels(true_labels, predictions, negative_label_value
             best_threshold = threshold
 
     return max_accuracy, best_predicted_labels, best_threshold
+
+
+class NewsGroupDataParser:
+
+    @staticmethod
+    def __parse_config(data_type):
+        config = {}
+        with open('%sdata/8newsgroup/%s.trec/config.txt' % (ROOT, data_type), 'r') as handler:
+            lines = handler.readlines()
+            for line in lines:
+                line = line.strip()
+                if not line.startswith("#"):
+                    splits = re.split("=", line)
+                    config[splits[0]] = int(splits[1])
+
+        return config
+
+    def __parse_data(self, data_type):
+        features = []
+        labels = []
+        config = self.__parse_config(data_type)
+        no_of_features = config['numFeatures']
+        with open('%sdata/8newsgroup/%s.trec/feature_matrix.txt' % (ROOT, data_type), 'r') as handler:
+            for i in range(config['numDataPoints']):
+                line = handler.readline().strip()
+                splits = re.split("\\s+", line)
+                label = int(splits[0])
+
+                feature_indexes = []
+                values = []
+                for j in range(1, len(splits)):
+                    temp = re.split(":", splits[j])
+                    feature_indexes.append(int(temp[0]))
+                    values.append(float(temp[1]))
+
+                feature = np.zeros(no_of_features, dtype=float)
+                feature[feature_indexes] = values
+
+                features.append(feature)
+                labels.append(label)
+
+        return np.array(features), np.array(labels)
+
+    def parse_data(self):
+        training_features, training_labels = self.__parse_data('train')
+        testing_features, testing_labels = self.__parse_data('test')
+
+        return {
+            "training": {
+                "features": training_features,
+                "labels": training_labels
+            },
+            "testing": {
+                "features": testing_features,
+                "labels": testing_labels
+            }
+        }
