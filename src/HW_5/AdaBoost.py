@@ -28,37 +28,36 @@ class DecisionStump:
     def __init__(self, decision_stump_type, features, labels, d_t) -> None:
         super().__init__()
         self.decision_stump_type = decision_stump_type
-        self.features = features
-        self.labels = labels
         self.d_t = d_t
         self.predictor = None
-        self.__initialize()
+        self.__initialize(features, labels)
 
-    def __initialize(self):
+    def __initialize(self, features, labels):
         if self.decision_stump_type is DecisionStumpType.OPTIMAL:
-            self.find_optimal_decision_stump()
+            self.find_optimal_decision_stump(features, labels)
         elif self.decision_stump_type is DecisionStumpType.RANDOM:
-            self.find_random_decision_stump()
+            self.find_random_decision_stump(features)
         else:
             raise Exception("Invalid Decision Stump Type")
 
-    def __get_unique_thresholds_for_feature(self, feature_index):
-        all_values = self.features[:, feature_index]
+    @staticmethod
+    def __get_unique_thresholds_for_feature(features, feature_index):
+        all_values = features[:, feature_index]
         return np.append(np.unique(all_values), [np.min(all_values) - 1, np.max(all_values) + 1])
 
-    def find_optimal_decision_stump(self):
+    def find_optimal_decision_stump(self, features, labels):
         optimal_goal = 0
         best_predictor = None
 
-        for i in range(self.features.shape[1]):
-            unique_thresholds = self.__get_unique_thresholds_for_feature(i)
+        for i in range(features.shape[1]):
+            unique_thresholds = self.__get_unique_thresholds_for_feature(features, i)
             sorted_unique_thresholds = np.sort(unique_thresholds)
 
             for threshold in sorted_unique_thresholds:
                 predictor = Predictor(i, threshold)
-                y_predicted = predictor.predict(self.features)
+                y_predicted = predictor.predict(features)
 
-                error = np.mean(np.square(self.labels - y_predicted) * self.d_t)
+                error = np.mean(np.square(labels - y_predicted) * self.d_t)
                 goal = abs(0.5 - error)
 
                 if goal > optimal_goal:
@@ -67,8 +66,8 @@ class DecisionStump:
 
         self.predictor = best_predictor
 
-    def find_random_decision_stump(self):
-        feature_index = np.random.randint(0, self.features.shape[1])
+    def find_random_decision_stump(self, features):
+        feature_index = np.random.randint(0, features.shape[1])
 
         unique_thresholds = self.__get_unique_thresholds_for_feature(feature_index)
         feature_threshold = unique_thresholds[np.random.randint(0, unique_thresholds.shape[0])]
@@ -95,7 +94,7 @@ class AdaBoost:
         return DecisionStump(self.decision_stump_type, features, true_labels, d_t)
 
     def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
-              display_step=100, display=True):
+              display_step=100, display=True, calculate_running_error=True):
 
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
 
@@ -120,27 +119,29 @@ class AdaBoost:
 
             d_t = d_t * (np.exp(-alpha_t * training_labels * training_predictions)) / z_t
 
-            # calculating the running training error
-            running_training_predictions += (training_predictions * alpha_t)
-            running_training_prediction_labels = np.ones(training_features.shape[0])
-            running_training_prediction_labels[running_training_predictions < 0] = -1
+            running_training_error, running_testing_error, testing_auc = None, None, None
+            if calculate_running_error:
+                # calculating the running training error
+                running_training_predictions += (training_predictions * alpha_t)
+                running_training_prediction_labels = np.ones(training_features.shape[0])
+                running_training_prediction_labels[running_training_predictions < 0] = -1
 
-            running_training_error = 1 - accuracy_score(training_labels, running_training_prediction_labels)
-            self.running_training_error.append(running_training_error)
+                running_training_error = 1 - accuracy_score(training_labels, running_training_prediction_labels)
+                self.running_training_error.append(running_training_error)
 
-            # calculating the running testing error
-            testing_predictions = weak_learner.predict(testing_features)
-            running_testing_predictions += (testing_predictions * alpha_t)
-            running_testing_prediction_labels = np.ones(testing_features.shape[0])
-            running_testing_prediction_labels[running_testing_predictions < 0] = -1
+                # calculating the running testing error
+                testing_predictions = weak_learner.predict(testing_features)
+                running_testing_predictions += (testing_predictions * alpha_t)
+                running_testing_prediction_labels = np.ones(testing_features.shape[0])
+                running_testing_prediction_labels[running_testing_predictions < 0] = -1
 
-            running_testing_error = 1 - accuracy_score(testing_labels, running_testing_prediction_labels)
-            self.running_testing_error.append(running_testing_error)
+                running_testing_error = 1 - accuracy_score(testing_labels, running_testing_prediction_labels)
+                self.running_testing_error.append(running_testing_error)
 
-            # calculating the testing auc
-            fpr, tpr, thresholds = roc_curve(testing_labels, running_testing_prediction_labels)
-            testing_auc = auc(fpr, tpr)
-            self.test_auc.append(testing_auc)
+                # calculating the testing auc
+                fpr, tpr, thresholds = roc_curve(testing_labels, running_testing_prediction_labels)
+                testing_auc = auc(fpr, tpr)
+                self.test_auc.append(testing_auc)
 
             if display and (t % display_step == 0 or t == 1):
                 print(
