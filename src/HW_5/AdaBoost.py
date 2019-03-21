@@ -95,7 +95,7 @@ class AdaBoost:
         return DecisionStump(self.decision_stump_type, features, true_labels, d_t)
 
     def train(self, training_features, training_labels, testing_features, testing_labels, no_of_weak_learners,
-              display_step=100):
+              display_step=100, display=True):
 
         d_t = np.repeat(1 / training_features.shape[0], training_features.shape[0])
 
@@ -142,7 +142,7 @@ class AdaBoost:
             testing_auc = auc(fpr, tpr)
             self.test_auc.append(testing_auc)
 
-            if t % display_step == 0 or t == 1:
+            if display and (t % display_step == 0 or t == 1):
                 print(
                     "Round {}, Feature:{}, Threshold:{} Round Err:{}, Training Err:{}, Testing Err:{}, Testing AUC:{}"
                         .format(t, weak_learner.predictor.feature_index,
