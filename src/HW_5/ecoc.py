@@ -1,4 +1,5 @@
 import numpy as np
+from joblib import Parallel, delayed
 from sklearn.metrics import accuracy_score
 
 from HW_5 import utils
@@ -20,30 +21,40 @@ class ECOC:
         no_of_bits, training_codes, testing_codes, code_label_mapping = self.__convert_labels_to_codes(training_labels,
                                                                                                        testing_labels,
                                                                                                        8)
+        # for i in range(no_of_bits):
+        #     print("+" * 40, "Training Classifier :", i + 1, "+" * 40)
+        #     classifier = self.__train_classifier_for_one_bit(training_features, training_codes[:, i],
+        #                                                      testing_features, testing_codes[:, i])
+        #     self.classifiers.append(classifier)
 
-        for i in range(no_of_bits):
-            print("+" * 40, "Training Classifier :", i + 1, "+" * 40)
-            classifier = self.__train_classifier_for_one_bit(training_features, training_codes[:, i],
-                                                             testing_features, testing_codes[:, i])
-            self.classifiers.append(classifier)
+        arg_list = [(training_features, training_codes[:, i], testing_features, testing_codes[:, i])
+                    for i in range(no_of_bits)]
+
+        self.classifiers = Parallel(n_jobs=32, verbose=50, backend="threading")(
+            map(delayed(ECOC.__train_classifier_for_one_bit_args), arg_list))
 
         self.no_of_bits = no_of_bits
         self.code_label_mapping = code_label_mapping
         self.thresholds = self.__get_thresholds(testing_features, testing_codes)
 
     @staticmethod
+    def __train_classifier_for_one_bit_args(args):
+        training_features, training_labels, testing_features, testing_labels = args
+        return ECOC.__train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels)
+
+    @staticmethod
     def __train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels):
         classifier = AdaBoost(DecisionStumpType.RANDOM)
-        classifier.train(training_features, training_labels, testing_features, testing_labels, 2000, 1000)
+        classifier.train(training_features, training_labels, testing_features, testing_labels, 2500, 1000,
+                         display=False)
         return classifier
 
-    def __get_thresholds(self, features, labels):
+    def __get_thresholds(self, features, codes):
         thresholds = []
 
-        i = 1
-        for classifier in self.classifiers:
-            prediction = classifier.predict(features)
-            acc, labels, thr = utils.convert_predictions_to_labels(labels, prediction)
+        for i in range(self.no_of_bits):
+            prediction = self.classifiers[i].predict(features)
+            acc, labels, thr = utils.convert_predictions_to_labels(codes[:, i], prediction)
             thresholds.append(thr)
 
             print("Classifier:{}, Accuracy:{}, Threshold:{}", i, acc, thr)
