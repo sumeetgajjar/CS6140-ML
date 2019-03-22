@@ -24,7 +24,7 @@ class ECOC:
         arg_list = [(training_features, training_codes[:, i], testing_features, testing_codes[:, i])
                     for i in range(no_of_bits)]
 
-        self.classifiers = Parallel(n_jobs=12, verbose=50, backend="threading")(
+        self.classifiers = Parallel(n_jobs=10, verbose=50, backend="threading")(
             map(delayed(ECOC.__train_classifier_for_one_bit_args), arg_list))
 
         self.no_of_bits = no_of_bits
@@ -39,7 +39,7 @@ class ECOC:
     @staticmethod
     def __train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels):
         classifier = AdaBoost(DecisionStumpType.RANDOM)
-        classifier.train(training_features, training_labels, testing_features, testing_labels, 7500, 500,
+        classifier.train(training_features, training_labels, testing_features, testing_labels, 8700, 500,
                          display=False, calculate_running_error=False)
         return classifier
 
