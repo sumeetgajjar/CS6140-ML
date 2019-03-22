@@ -21,16 +21,10 @@ class ECOC:
         no_of_bits, training_codes, testing_codes, code_label_mapping = self.__convert_labels_to_codes(training_labels,
                                                                                                        testing_labels,
                                                                                                        8)
-        # for i in range(no_of_bits):
-        #     print("+" * 40, "Training Classifier :", i + 1, "+" * 40)
-        #     classifier = self.__train_classifier_for_one_bit(training_features, training_codes[:, i],
-        #                                                      testing_features, testing_codes[:, i])
-        #     self.classifiers.append(classifier)
-
         arg_list = [(training_features, training_codes[:, i], testing_features, testing_codes[:, i])
                     for i in range(no_of_bits)]
 
-        self.classifiers = Parallel(n_jobs=32, verbose=50, backend="threading")(
+        self.classifiers = Parallel(n_jobs=12, verbose=50, backend="threading")(
             map(delayed(ECOC.__train_classifier_for_one_bit_args), arg_list))
 
         self.no_of_bits = no_of_bits
@@ -45,22 +39,38 @@ class ECOC:
     @staticmethod
     def __train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels):
         classifier = AdaBoost(DecisionStumpType.RANDOM)
-        classifier.train(training_features, training_labels, testing_features, testing_labels, 2500, 1000,
-                         display=False)
+        classifier.train(training_features, training_labels, testing_features, testing_labels, 7500, 500,
+                         display=False, calculate_running_error=False)
         return classifier
 
+    def __convert_labels_to_codes(self, training_labels, testing_labels, no_of_classes):
+        labels = np.unique(training_labels)
+        # no_of_bits, codes = self.generate_ecoc_exhaustive_code(no_of_classes)
+        no_of_bits, codes = self.generate_ecoc_random_code(no_of_classes, 16)
+
+        training_codes = np.ones((training_labels.shape[0], no_of_bits))
+        testing_codes = np.ones((testing_labels.shape[0], no_of_bits))
+        code_label_mapping = []
+        for label, code in zip(labels, codes):
+            training_codes[training_labels == label] *= code
+            testing_codes[testing_labels == label] *= code
+            code_label_mapping.append((code, label))
+
+        return no_of_bits, training_codes, testing_codes, code_label_mapping
+
     def __get_thresholds(self, features, codes):
-        thresholds = []
+        arg_list = [(self.classifiers[i], i, features, codes[:, i]) for i in range(self.no_of_bits)]
+        return np.array(Parallel(n_jobs=8, verbose=50, backend="threading")(
+            map(delayed(ECOC.__calculate_threshold_for_classifier), arg_list)))
 
-        for i in range(self.no_of_bits):
-            prediction = self.classifiers[i].predict(features)
-            acc, labels, thr = utils.convert_predictions_to_labels(codes[:, i], prediction)
-            thresholds.append(thr)
+    @staticmethod
+    def __calculate_threshold_for_classifier(args):
+        classifier, classifier_id, features, labels = args
+        prediction = classifier.predict(features)
+        acc, labels, thr = utils.convert_predictions_to_labels(labels, prediction)
 
-            print("Classifier:{}, Accuracy:{}, Threshold:{}", i, acc, thr)
-            i += 1
-
-        return np.array(thresholds)
+        print("Classifier:{}, Accuracy:{}, Threshold:{}".format(classifier_id, acc, thr))
+        return thr
 
     def predict(self, features):
 
@@ -86,20 +96,6 @@ class ECOC:
 
         return predicted_labels
 
-    def __convert_labels_to_codes(self, training_labels, testing_labels, no_of_classes):
-        labels = np.unique(training_labels)
-        no_of_bits, codes = self.generate_ecoc_exhaustive_code(no_of_classes)
-
-        training_codes = np.ones((training_labels.shape[0], no_of_bits))
-        testing_codes = np.ones((testing_labels.shape[0], no_of_bits))
-        code_label_mapping = []
-        for label, code in zip(labels, codes):
-            training_codes[training_labels == label] *= code
-            testing_codes[testing_labels == label] *= code
-            code_label_mapping.append((code, label))
-
-        return no_of_bits, training_codes, testing_codes, code_label_mapping
-
     @staticmethod
     def generate_ecoc_exhaustive_code(no_of_classes):
         no_of_bits = 2 ** (no_of_classes - 1)
@@ -121,6 +117,15 @@ class ECOC:
         codes = codes[:, :-1].copy()
         return no_of_bits, codes
 
+    @staticmethod
+    def generate_ecoc_random_code(no_of_classes, no_of_bits):
+        codes = [np.random.random_integers(0, 1, no_of_bits) for _ in range(no_of_classes)]
+        for code in codes:
+            code[code == 0] = -1
+
+        codes = np.array(codes)
+        return no_of_bits, codes
+
 
 def demo_ecoc_on_8_news_group_data():
     print("+" * 40, "Parsing Data", "+" * 40)
@@ -136,4 +141,5 @@ def demo_ecoc_on_8_news_group_data():
 
 
 if __name__ == '__main__':
+    np.random.seed(11)
     demo_ecoc_on_8_news_group_data()

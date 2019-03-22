@@ -69,7 +69,7 @@ class DecisionStump:
     def find_random_decision_stump(self, features):
         feature_index = np.random.randint(0, features.shape[1])
 
-        unique_thresholds = self.__get_unique_thresholds_for_feature(feature_index)
+        unique_thresholds = self.__get_unique_thresholds_for_feature(features, feature_index)
         feature_threshold = unique_thresholds[np.random.randint(0, unique_thresholds.shape[0])]
 
         self.predictor = Predictor(feature_index, feature_threshold)
@@ -156,12 +156,12 @@ class AdaBoost:
         self.alpha = np.array(alpha)
 
     def predict(self, features):
-        h_t = []
+        h_t = np.zeros(features.shape[0])
         for t in range(self.alpha.shape[0]):
             predicted_labels = self.weak_learners[t].predict(features)
-            h_t.append(predicted_labels)
+            h_t += (predicted_labels * self.alpha[t])
 
-        return np.sum(np.transpose(np.array(h_t)) * self.alpha, axis=1)
+        return h_t
 
     def plot_metrics(self):
         x = range(self.alpha.shape[0])
