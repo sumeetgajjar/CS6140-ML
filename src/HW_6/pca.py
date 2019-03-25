@@ -6,7 +6,7 @@ from HW_6 import utils
 
 
 def demo_naive_bayes_on_spam_polluted():
-    print("+" * 40, "Naive Bayes", "+" * 40)
+    print("+" * 40, "Naive Bayes before PCA", "+" * 40)
     data = utils.get_spam_polluted_data()
 
     training_features = data['training']['features']
@@ -35,7 +35,7 @@ def demo_naive_bayes_on_spam_polluted():
 
     print("Training Accuracy", training_accuracy)
     print("Testing Accuracy", testing_accuracy)
-    print("+" * 40, "Naive Bayes", "+" * 40)
+    print("+" * 40, "Naive Bayes before PCA", "+" * 40)
 
 
 if __name__ == '__main__':
