@@ -28,17 +28,21 @@ def demo_classifier(data):
     print("Testing Accuracy", testing_accuracy)
 
 
+# todo: fix the bug in LDA
 def demo_naive_bayes_on_spam_polluted_lda():
     print("+" * 40, "Naive Bayes After LDA", "+" * 40)
     data = utils.get_spam_polluted_data()
 
     training_features = data['training']['features']
+    training_labels = data['training']['labels']
     testing_features = data['testing']['features']
+    testing_labels = data['testing']['labels']
 
     combined_features = np.concatenate((training_features, testing_features))
+    combined_labels = np.concatenate((training_labels, testing_labels))
 
     lda = LatentDirichletAllocation(n_components=100, random_state=0, n_jobs=4, verbose=10)
-    lda.fit(combined_features)
+    lda.fit(combined_features, combined_labels)
     transformed_features = lda.transform(combined_features)
 
     training_features = transformed_features[:training_features.shape[0]]
