@@ -37,9 +37,9 @@ def demo_naive_bayes_on_spam_polluted_lda():
 
     combined_features = np.concatenate((training_features, testing_features))
 
-    pca = LatentDirichletAllocation(n_components=100, random_state=0, n_jobs=4, verbose=10)
-    pca.fit(combined_features)
-    transformed_features = pca.transform(combined_features)
+    lda = LatentDirichletAllocation(n_components=100, random_state=0, n_jobs=4, verbose=10)
+    lda.fit(combined_features)
+    transformed_features = lda.transform(combined_features)
 
     training_features = transformed_features[:training_features.shape[0]]
     testing_features = transformed_features[training_features.shape[0]:]
