@@ -9,12 +9,13 @@ from HW_4.GDA_on_spam import SpamGDA
 
 class NaiveBayesGaussian:
 
-    def __init__(self) -> None:
+    def __init__(self, sigma_diagonal_adder=0.1) -> None:
         super().__init__()
         self.gda = None
+        self.sigma_diagonal_adder = sigma_diagonal_adder
 
     def train(self, features, labels):
-        self.gda = SpamGDA(0.1)
+        self.gda = SpamGDA(self.sigma_diagonal_adder)
         self.gda.train(features, labels)
         self.gda.sigma[~np.eye(self.gda.sigma.shape[0], dtype=bool)] = 0
 
