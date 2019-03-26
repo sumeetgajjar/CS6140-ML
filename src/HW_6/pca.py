@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, LatentDirichletAllocation
 from sklearn.metrics import accuracy_score
 
 from HW_4.naive_bayes import NaiveBayesGaussian
@@ -26,6 +26,29 @@ def demo_classifier(data):
 
     print("Training Accuracy", training_accuracy)
     print("Testing Accuracy", testing_accuracy)
+
+
+def demo_naive_bayes_on_spam_polluted_lda():
+    print("+" * 40, "Naive Bayes After LDA", "+" * 40)
+    data = utils.get_spam_polluted_data()
+
+    training_features = data['training']['features']
+    testing_features = data['testing']['features']
+
+    combined_features = np.concatenate((training_features, testing_features))
+
+    pca = LatentDirichletAllocation(n_components=20, random_state=0)
+    pca.fit(combined_features)
+    transformed_features = pca.transform(combined_features)
+
+    training_features = transformed_features[:training_features.shape[0]]
+    testing_features = transformed_features[training_features.shape[0]:]
+
+    data['training']['features'] = training_features
+    data['testing']['features'] = testing_features
+
+    demo_classifier(data)
+    print("+" * 40, "Naive Bayes After LDA", "+" * 40)
 
 
 def demo_naive_bayes_on_spam_polluted_pca():
@@ -59,5 +82,6 @@ def demo_naive_bayes_on_spam_polluted():
 
 
 if __name__ == '__main__':
-    demo_naive_bayes_on_spam_polluted()
-    demo_naive_bayes_on_spam_polluted_pca()
+    # demo_naive_bayes_on_spam_polluted()
+    # demo_naive_bayes_on_spam_polluted_pca()
+    demo_naive_bayes_on_spam_polluted_lda()
