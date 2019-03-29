@@ -84,6 +84,7 @@ class AdaBoost:
         super().__init__()
         self.decision_stump_type = decision_stump_type
         self.alpha = None
+        self.feature_confidence = None
         self.weak_learners = []
         self.local_round_error = []
         self.running_training_error = []
@@ -154,6 +155,27 @@ class AdaBoost:
                                 testing_auc))
 
         self.alpha = np.array(alpha)
+        self.feature_confidence = self.__compute_feature_confidence()
+
+    def __compute_feature_confidence(self):
+        feature_confidence = {}
+
+        total_weight = 0
+        for i in range(len(self.weak_learners)):
+            feature_index = self.weak_learners[i].predictor.feature_index
+
+            if feature_index not in feature_confidence:
+                feature_confidence[feature_index] = {
+                    'weight': 0
+                }
+
+            feature_confidence[feature_index]['weight'] += abs(self.alpha[i])
+            total_weight += abs(self.alpha[i])
+
+        for key, value in feature_confidence.items():
+            value['confidence'] = value['weight'] / total_weight
+
+        return feature_confidence
 
     def predict(self, features):
         h_t = np.zeros(features.shape[0])
