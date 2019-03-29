@@ -57,7 +57,7 @@ class SGDLinearRegression(LinearRegression):
                 self.weights = self.weights - (x_t * (self.learning_rate * diff))
 
             if self.debug and i % 20 == 0:
-                print(np.transpose(self.weights).tolist())
+                print("Step=>{}".format(i), np.transpose(self.weights).tolist())
 
 
 class SGDLogisticRegression(SGDLinearRegression):
@@ -83,8 +83,8 @@ class BGDLinearRegression(SGDLinearRegression):
 
                 self.weights[j] = self.weights[j] - (self.learning_rate * temp_sum)
 
-            if self.debug and i % 20 == 0:
-                print(np.transpose(self.weights).tolist())
+            if self.debug and i % 5 == 0:
+                print("Step=>{}".format(i), np.transpose(self.weights).tolist())
 
 
 class BGDLogisticRegression(BGDLinearRegression):
