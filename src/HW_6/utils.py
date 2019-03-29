@@ -108,6 +108,12 @@ def plot_roc_curve(true_labels, predictions):
     plt.show()
 
 
+def log(x):
+    logs = np.zeros(x.shape[0])
+    logs[x != 0] = np.log(x[x != 0])
+    return logs
+
+
 def convert_predictions_to_labels(true_labels, predictions, negative_label_value=-1):
     fpr, tpr, thresholds = roc_curve(true_labels, predictions)
 

@@ -96,3 +96,9 @@ def normalize_data_using_shift_and_scale(feature_vectors):
         i += 1
 
     return feature_vectors
+
+
+def log(x):
+    logs = np.zeros(x.shape[0])
+    logs[x != 0] = np.log(x[x != 0])
+    return logs
