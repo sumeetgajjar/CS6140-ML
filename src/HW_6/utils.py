@@ -40,7 +40,7 @@ def get_spam_polluted_data():
 
 
 def get_polluted_spam_data_for_ada_boost():
-    data = get_spam_data()
+    data = get_spam_polluted_data()
     for s in ['training', 'testing']:
         labels = data[s]['labels']
         labels[labels == 0] = -1
