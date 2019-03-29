@@ -28,7 +28,6 @@ def demo_classifier(data):
     print("Testing Accuracy", testing_accuracy)
 
 
-# todo: fix the bug in LDA
 def demo_naive_bayes_on_spam_polluted_lda():
     print("+" * 40, "Naive Bayes After LDA", "+" * 40)
     data = utils.get_spam_polluted_data()
@@ -53,6 +52,7 @@ def demo_naive_bayes_on_spam_polluted_lda():
 
     demo_classifier(data)
     print("+" * 40, "Naive Bayes After LDA", "+" * 40)
+    print()
 
 
 def demo_naive_bayes_on_spam_polluted_pca():
@@ -72,6 +72,7 @@ def demo_naive_bayes_on_spam_polluted_pca():
 
     demo_classifier(data)
     print("+" * 40, "Naive Bayes After PCA", "+" * 40)
+    print()
 
 
 def demo_naive_bayes_on_spam_polluted():
@@ -79,6 +80,7 @@ def demo_naive_bayes_on_spam_polluted():
     data = utils.get_spam_polluted_data()
     demo_classifier(data)
     print("+" * 40, "Naive Bayes before PCA", "+" * 40)
+    print()
 
 
 if __name__ == '__main__':
