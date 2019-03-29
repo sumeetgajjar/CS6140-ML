@@ -82,6 +82,6 @@ def demo_naive_bayes_on_spam_polluted():
 
 
 if __name__ == '__main__':
-    # demo_naive_bayes_on_spam_polluted()
-    # demo_naive_bayes_on_spam_polluted_pca()
+    demo_naive_bayes_on_spam_polluted()
+    demo_naive_bayes_on_spam_polluted_pca()
     demo_naive_bayes_on_spam_polluted_lda()
