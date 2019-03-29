@@ -13,7 +13,7 @@ def demo_classifier(data):
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = NaiveBayesGaussian(0.7)
+    classifier = NaiveBayesGaussian(0.1)
     classifier.train(training_features, training_labels)
 
     training_predictions = classifier.predict(training_features)
@@ -41,7 +41,7 @@ def demo_naive_bayes_on_spam_polluted_lda():
     combined_features = np.concatenate((training_features, testing_features))
     combined_labels = np.concatenate((training_labels, testing_labels))
 
-    lda = LatentDirichletAllocation(n_components=100, random_state=0, n_jobs=4, verbose=10)
+    lda = LatentDirichletAllocation(n_components=40, max_iter=5, random_state=0, n_jobs=4, verbose=10)
     lda.fit(combined_features, combined_labels)
     transformed_features = lda.transform(combined_features)
 
@@ -62,14 +62,10 @@ def demo_naive_bayes_on_spam_polluted_pca():
     training_features = data['training']['features']
     testing_features = data['testing']['features']
 
-    combined_features = np.concatenate((training_features, testing_features))
-
-    pca = PCA(n_components=100)
-    pca.fit(combined_features)
-    transformed_features = pca.transform(combined_features)
-
-    training_features = transformed_features[:training_features.shape[0]]
-    testing_features = transformed_features[training_features.shape[0]:]
+    pca = PCA(n_components=100, random_state=11)
+    pca.fit(training_features)
+    training_features = pca.transform(training_features)
+    testing_features = pca.transform(testing_features)
 
     data['training']['features'] = training_features
     data['testing']['features'] = testing_features
