@@ -9,20 +9,34 @@ from HW_5.utils import NewsGroupDataParser
 
 class ECOC:
 
-    def __init__(self, training_features, training_labels, testing_features, testing_labels) -> None:
+    def __init__(self,
+                 training_features,
+                 training_labels,
+                 testing_features,
+                 testing_labels,
+                 no_of_weak_learner,
+                 no_of_class,
+                 no_of_bits,
+                 decision_stump_type) -> None:
         super().__init__()
         self.code_label_mapping = None
         self.thresholds = None
         self.classifiers = []
+        self.no_of_weak_learner = no_of_weak_learner
+        self.no_of_classes = no_of_class
+        self.no_of_bits = no_of_bits
+        self.decision_stump_type = decision_stump_type
         self.__train(training_features, training_labels, testing_features, testing_labels)
 
     def __train(self, training_features, training_labels, testing_features, testing_labels):
         print("+" * 40, "Converting the labels into codes", "+" * 40)
         no_of_bits, training_codes, testing_codes, code_label_mapping = self.__convert_labels_to_codes(training_labels,
                                                                                                        testing_labels,
-                                                                                                       8)
-        arg_list = [(training_features, training_codes[:, i], testing_features, testing_codes[:, i])
-                    for i in range(no_of_bits)]
+                                                                                                       self.no_of_classes)
+        arg_list = [
+            (training_features, training_codes[:, i], testing_features, testing_codes[:, i], self.no_of_weak_learner,
+             self.decision_stump_type)
+            for i in range(no_of_bits)]
 
         self.classifiers = Parallel(n_jobs=10, verbose=50, backend="threading")(
             map(delayed(ECOC.__train_classifier_for_one_bit_args), arg_list))
@@ -33,20 +47,31 @@ class ECOC:
 
     @staticmethod
     def __train_classifier_for_one_bit_args(args):
-        training_features, training_labels, testing_features, testing_labels = args
-        return ECOC.__train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels)
+        training_features, training_labels, testing_features, testing_labels, no_of_weak_learner, decision_stump_type = args
+        return ECOC.__train_classifier_for_one_bit(training_features,
+                                                   training_labels,
+                                                   testing_features,
+                                                   testing_labels,
+                                                   no_of_weak_learner,
+                                                   decision_stump_type)
 
     @staticmethod
-    def __train_classifier_for_one_bit(training_features, training_labels, testing_features, testing_labels):
-        classifier = AdaBoost(DecisionStumpType.RANDOM)
-        classifier.train(training_features, training_labels, testing_features, testing_labels, 8700, 500,
+    def __train_classifier_for_one_bit(training_features,
+                                       training_labels,
+                                       testing_features,
+                                       testing_labels,
+                                       no_of_weak_learner,
+                                       decision_stump_type):
+
+        classifier = AdaBoost(decision_stump_type)
+        classifier.train(training_features, training_labels, testing_features, testing_labels, no_of_weak_learner, 10,
                          display=False, calculate_running_error=False)
         return classifier
 
     def __convert_labels_to_codes(self, training_labels, testing_labels, no_of_classes):
         labels = np.unique(training_labels)
         # no_of_bits, codes = self.generate_ecoc_exhaustive_code(no_of_classes)
-        no_of_bits, codes = self.generate_ecoc_random_code(no_of_classes, 16)
+        no_of_bits, codes = self.generate_ecoc_random_code(no_of_classes, self.no_of_bits)
 
         training_codes = np.ones((training_labels.shape[0], no_of_bits))
         testing_codes = np.ones((testing_labels.shape[0], no_of_bits))
@@ -135,7 +160,8 @@ def demo_ecoc_on_8_news_group_data():
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = ECOC(training_features, training_labels, testing_features, testing_labels)
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 8700, 8, 16,
+                      DecisionStumpType.RANDOM)
     predicted_labels = classifier.predict(testing_features)
     print("Testing Accuracy:", accuracy_score(testing_labels, predicted_labels))
 

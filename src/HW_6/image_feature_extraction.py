@@ -1,7 +1,10 @@
 from math import floor
 
 import numpy as np
+from joblib import Parallel, delayed
+from sklearn.metrics import accuracy_score
 
+from HW_5.ecoc import ECOC
 from HW_6 import utils
 
 BLACK_THRESHOLD = 0
@@ -102,35 +105,62 @@ def compute_HAAR_feature(black_pixels, rects):
     return feature
 
 
-def extract_features_from_images(data, no_of_sub_rectangle):
+def extract_features_from_image(image):
+    image = image.reshape(28, 28)
+    rects = sample_sub_rectangles(100,
+                                  image.shape[0],
+                                  image.shape[1])
+
+    black_pixels = find_no_of_black_pixels_along_diagonal_sub_rect(image)
+    return compute_HAAR_feature(black_pixels, rects)
+
+
+def extract_features_from_data(data):
     for s in ['training', 'testing']:
         images = data[s]['images']
 
-        features = []
-        for image in images:
-            image = image.reshape(28, 28)
-            rects = sample_sub_rectangles(no_of_sub_rectangle,
-                                          image.shape[0],
-                                          image.shape[1])
+        features = Parallel(n_jobs=40, verbose=1, backend="threading")(
+            map(delayed(extract_features_from_image), images))
 
-            black_pixels = find_no_of_black_pixels_along_diagonal_sub_rect(image)
-            features.append(compute_HAAR_feature(black_pixels, rects))
-
-        data[s]['features'] = features
+        data[s]['features'] = np.array(features)
 
     return data
 
 
-def demo_haar_feature_extraction_on_mnist_data():
-    data = utils.get_mnist_data()
-    data = sample_data(data, 2)
-    data = extract_features_from_images(data, 100)
-    print()
+def demo_HAAR_feature_extraction_on_mnist_data(load):
+    if load:
+        training_features = np.load('training_features.npy')
+        training_labels = np.load('training_labels.npy')
+        testing_features = np.load('testing_features.npy')
+        testing_labels = np.load('testing_labels.npy')
+
+    else:
+        data = utils.get_mnist_data()
+        data = sample_data(data, 20)
+        data = extract_features_from_data(data)
+
+        np.save('training_features', data['training']['features'])
+        np.save('training_labels', data['training']['labels'])
+        np.save('testing_features', data['testing']['features'])
+        np.save('testing_labels', data['testing']['labels'])
+
+        training_features = data['training']['features']
+        training_labels = data['training']['labels']
+        testing_features = data['testing']['features']
+        testing_labels = data['testing']['labels']
+
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 50, 10, 50)
+
+    predicted_labels = classifier.predict(training_features)
+    print("Training Accuracy:", accuracy_score(training_labels, predicted_labels))
+
+    predicted_labels = classifier.predict(testing_features)
+    print("Testing Accuracy:", accuracy_score(testing_labels, predicted_labels))
 
 
 if __name__ == '__main__':
     np.random.seed(11)
-    demo_haar_feature_extraction_on_mnist_data()
+    demo_HAAR_feature_extraction_on_mnist_data(True)
     # image = np.ones((28, 28))
     # rects = sample_sub_rectangles(100,
     #                               image.shape[0],
