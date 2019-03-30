@@ -1,9 +1,27 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from mnist import MNIST
 from sklearn.metrics import accuracy_score, roc_curve, auc
 
 ROOT = '../../'
+
+
+def get_mnist_data():
+    mnist = MNIST(path='%sdata/mnist' % ROOT, gz=True)
+    training_images, training_labels = mnist.load_training()
+    testing_images, testing_labels = mnist.load_testing()
+
+    return {
+        'training': {
+            'images': training_images,
+            'labels': training_labels
+        },
+        'testing': {
+            'images': testing_images,
+            'labels': testing_labels
+        }
+    }
 
 
 def get_spam_missing_data():
