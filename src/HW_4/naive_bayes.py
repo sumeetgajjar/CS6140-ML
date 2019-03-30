@@ -90,11 +90,12 @@ class NaiveBayesBins:
     @staticmethod
     def convert_continuous_features_to_discrete(features):
         features = features.copy()
-        mean = features.mean(axis=0)
+        mean = np.nanmean(features, axis=0)
 
         dimension = features.shape[1]
         for i in range(dimension):
             f_i = features[:, i]
+            f_i[np.isnan(f_i)] = -1
             f_i[f_i <= mean[i]] = 0
             f_i[f_i > mean[i]] = 1
 
