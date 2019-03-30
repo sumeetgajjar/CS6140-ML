@@ -14,12 +14,12 @@ def get_mnist_data():
 
     return {
         'training': {
-            'images': training_images,
-            'labels': training_labels
+            'images': np.array(training_images),
+            'labels': np.array(training_labels)
         },
         'testing': {
-            'images': testing_images,
-            'labels': testing_labels
+            'images': np.array(testing_images),
+            'labels': np.array(testing_labels)
         }
     }
 
