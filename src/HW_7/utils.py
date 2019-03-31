@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+ROOT = '../../'
+
 
 def get_spam_data():
     data = pd.read_csv('%sdata/spam-email/spambase.data' % ROOT, header=None)
