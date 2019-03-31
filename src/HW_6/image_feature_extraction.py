@@ -1,9 +1,11 @@
+import os
 from math import floor
 
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.metrics import accuracy_score
 
+from HW_5.AdaBoost import DecisionStumpType
 from HW_5.ecoc import ECOC
 from HW_6 import utils
 
@@ -105,7 +107,7 @@ def compute_HAAR_feature(black_pixels, rects):
     return feature
 
 
-def extract_features_from_image(image):
+def extract_haar_features_from_image(image):
     image = image.reshape(28, 28)
     rects = sample_sub_rectangles(100,
                                   image.shape[0],
@@ -115,41 +117,65 @@ def extract_features_from_image(image):
     return compute_HAAR_feature(black_pixels, rects)
 
 
-def extract_features_from_data(data):
+def extract_features_from_images(data):
     for s in ['training', 'testing']:
         images = data[s]['images']
 
         features = Parallel(n_jobs=40, verbose=1, backend="threading")(
-            map(delayed(extract_features_from_image), images))
+            map(delayed(extract_haar_features_from_image), images))
 
         data[s]['features'] = np.array(features)
 
     return data
 
 
-def demo_HAAR_feature_extraction_on_mnist_data(load):
-    if load:
-        training_features = np.load('training_features.npy')
-        training_labels = np.load('training_labels.npy')
-        testing_features = np.load('testing_features.npy')
-        testing_labels = np.load('testing_labels.npy')
+def get_mnist_images_features(percentage=100, overwrite=False):
+    cache_dir = '{}data/mnist/cache/'.format(utils.ROOT)
 
-    else:
+    if overwrite or not os.path.exists('{}__{}.npy'.format(cache_dir, percentage)):
         data = utils.get_mnist_data()
-        data = sample_data(data, 20)
-        data = extract_features_from_data(data)
+        data = sample_data(data, percentage)
+        data = extract_features_from_images(data)
 
-        np.save('training_features', data['training']['features'])
-        np.save('training_labels', data['training']['labels'])
-        np.save('testing_features', data['testing']['features'])
-        np.save('testing_labels', data['testing']['labels'])
+        np.save('{}{}_training_features.npy'.format(cache_dir, percentage), data['training']['features'])
+        np.save('{}{}_training_labels.npy'.format(cache_dir, percentage), data['training']['labels'])
+        np.save('{}{}_testing_features.npy'.format(cache_dir, percentage), data['testing']['features'])
+        np.save('{}{}_testing_labels.npy'.format(cache_dir, percentage), data['testing']['labels'])
+        np.save('{}__{}.npy'.format(cache_dir, percentage), np.empty(0))
 
-        training_features = data['training']['features']
-        training_labels = data['training']['labels']
-        testing_features = data['testing']['features']
-        testing_labels = data['testing']['labels']
+        del data['training']['images']
+        del data['testing']['images']
 
-    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 50, 10, 50)
+        return data
+    else:
+        training_features = np.load('{}{}_training_features.npy'.format(cache_dir, percentage))
+        training_labels = np.load('{}{}_training_labels.npy'.format(cache_dir, percentage))
+        testing_features = np.load('{}{}_testing_features.npy'.format(cache_dir, percentage))
+        testing_labels = np.load('{}{}_testing_labels.npy'.format(cache_dir, percentage))
+
+        return {
+            'training': {
+                'features': training_features,
+                'labels': training_labels
+            },
+            'testing': {
+                'features': testing_features,
+                'labels': testing_labels
+            }
+        }
+
+
+def demo_haar_feature_extraction_on_mnist_data():
+    data = get_mnist_images_features(percentage=20)
+
+    training_features = data['training']['features']
+    training_labels = data['training']['labels']
+
+    testing_features = data['testing']['features']
+    testing_labels = data['testing']['labels']
+
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 50, 10, 50,
+                      DecisionStumpType.OPTIMAL)
 
     predicted_labels = classifier.predict(training_features)
     print("Training Accuracy:", accuracy_score(training_labels, predicted_labels))
@@ -160,7 +186,7 @@ def demo_HAAR_feature_extraction_on_mnist_data(load):
 
 if __name__ == '__main__':
     np.random.seed(11)
-    demo_HAAR_feature_extraction_on_mnist_data(True)
+    demo_haar_feature_extraction_on_mnist_data(True)
     # image = np.ones((28, 28))
     # rects = sample_sub_rectangles(100,
     #                               image.shape[0],

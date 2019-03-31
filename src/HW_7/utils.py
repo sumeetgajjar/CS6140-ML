@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from mnist import MNIST
 
 ROOT = '../../'
 
@@ -56,3 +57,20 @@ def k_fold_split(k, data, seed=11, shuffle=False):
         testing_fold_index += 1
 
     return final_data
+
+
+def get_mnist_data():
+    mnist = MNIST(path='%sdata/mnist' % ROOT, gz=True)
+    training_images, training_labels = mnist.load_training()
+    testing_images, testing_labels = mnist.load_testing()
+
+    return {
+        'training': {
+            'images': np.array(training_images),
+            'labels': np.array(training_labels)
+        },
+        'testing': {
+            'images': np.array(testing_images),
+            'labels': np.array(testing_labels)
+        }
+    }
