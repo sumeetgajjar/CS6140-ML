@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 from HW_2 import regression
-from HW_2.regression import SGDRidgeLogisticRegression, BGDRidgeLogisticRegression
+from HW_2.regression import SGDRidgeLogisticRegression
 from HW_6 import utils
 
 
