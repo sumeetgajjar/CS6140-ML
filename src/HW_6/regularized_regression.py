@@ -1,6 +1,6 @@
 from sklearn.linear_model import LogisticRegression
 
-from HW_2.regression import SGDLinearRegression, BGDLogisticRegression
+from HW_2 import regression
 from HW_6 import utils
 
 
@@ -38,29 +38,28 @@ def demo_regularized_regression_lasso():
     print()
 
 
-class LogisticRegressionWrapper(BGDLogisticRegression):
+class RegressorWrapper:
+
+    def __init__(self, regressor) -> None:
+        super().__init__()
+        self.regressor = regressor
 
     def fit(self, features, labels):
-        self.train(features, labels)
+        self.regressor.train(features, labels)
 
-
-class ALogisticRegressionWrapper(SGDLinearRegression):
-
-    def fit(self, features, labels):
-        self.train(features, labels)
+    def predict(self, features):
+        return self.regressor.predict(features)
 
 
 def demo_logistic_regression():
     print("+" * 40, "Custom Logistic Regression On Polluted Spam", "+" * 40)
     data = utils.get_spam_polluted_data()
-    demo_regressor(LogisticRegressionWrapper(0.0000001, 20, 121, debug=True), data)
-    # demo_regressor(ALogisticRegressionWrapper(0.0000003, 8000, 11, debug=True), data)
+    demo_regressor(RegressorWrapper(regression.LogisticRegression()), data)
     print("+" * 40, "Custom Logistic Regression On Polluted Spam", "+" * 40)
     print()
 
 
 if __name__ == '__main__':
-    # demo_logistic_regression_on_polluted_spam()
-    # demo_regularized_regression_ridge()
-    # demo_regularized_regression_lasso()
+    demo_regularized_regression_ridge()
+    demo_regularized_regression_lasso()
     demo_logistic_regression()
