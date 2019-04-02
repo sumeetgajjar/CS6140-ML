@@ -85,7 +85,10 @@ def compute_black_pixels_count(black_pixels, start_x, start_y, end_x, end_y):
     return count
 
 
-def compute_HAAR_feature(black_pixels, rects):
+def compute_haar_feature(image, rects):
+    image = image.reshape(28, 28)
+    black_pixels = find_no_of_black_pixels_along_diagonal_sub_rect(image)
+
     feature = np.ones(2 * rects.shape[0])
     for i in range(rects.shape[0]):
         a_x, a_y, d_x, d_y = rects[i]
@@ -107,22 +110,19 @@ def compute_HAAR_feature(black_pixels, rects):
     return feature
 
 
-def extract_haar_features_from_image(image):
-    image = image.reshape(28, 28)
-    rects = sample_sub_rectangles(100,
-                                  image.shape[0],
-                                  image.shape[1])
-
-    black_pixels = find_no_of_black_pixels_along_diagonal_sub_rect(image)
-    return compute_HAAR_feature(black_pixels, rects)
+def compute_haar_feature_wrapper(args):
+    image, rects = args
+    return compute_haar_feature(image, rects)
 
 
 def extract_features_from_images(data):
+    rects = sample_sub_rectangles(100, 28, 28)
+
     for s in ['training', 'testing']:
         images = data[s]['images']
 
-        features = Parallel(n_jobs=40, verbose=1, backend="threading")(
-            map(delayed(extract_haar_features_from_image), images))
+        features = Parallel(n_jobs=12, verbose=1, backend="threading")(
+            map(delayed(compute_haar_feature_wrapper), [(image, rects) for image in images]))
 
         data[s]['features'] = np.array(features)
 
@@ -166,7 +166,7 @@ def get_mnist_images_features(percentage=100, overwrite=False):
 
 
 def demo_haar_feature_extraction_on_mnist_data():
-    data = get_mnist_images_features(percentage=20)
+    data = get_mnist_images_features(percentage=20, overwrite=False)
 
     training_features = data['training']['features']
     training_labels = data['training']['labels']
@@ -174,8 +174,8 @@ def demo_haar_feature_extraction_on_mnist_data():
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 50, 10, 50,
-                      DecisionStumpType.OPTIMAL)
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 200, 10, 50,
+                      DecisionStumpType.RANDOM)
 
     predicted_labels = classifier.predict(training_features)
     print("Training Accuracy:", accuracy_score(training_labels, predicted_labels))
@@ -186,11 +186,4 @@ def demo_haar_feature_extraction_on_mnist_data():
 
 if __name__ == '__main__':
     np.random.seed(11)
-    demo_haar_feature_extraction_on_mnist_data(True)
-    # image = np.ones((28, 28))
-    # rects = sample_sub_rectangles(100,
-    #                               image.shape[0],
-    #                               image.shape[1])
-    #
-    # black_pixels = find_no_of_black_pixels_along_diagonal_sub_rect(image)
-    # print(compute_HAAR_feature(black_pixels, rects))
+    demo_haar_feature_extraction_on_mnist_data()
