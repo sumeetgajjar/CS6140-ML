@@ -17,8 +17,12 @@ class ECOC:
                  no_of_weak_learner,
                  no_of_class,
                  no_of_bits,
-                 decision_stump_type) -> None:
+                 decision_stump_type,
+                 display=False,
+                 display_step=10) -> None:
         super().__init__()
+        self.display = display
+        self.display_step = display_step
         self.code_label_mapping = None
         self.thresholds = None
         self.classifiers = []
@@ -47,13 +51,15 @@ class ECOC:
 
     @staticmethod
     def __train_classifier_for_one_bit_args(args):
-        training_features, training_labels, testing_features, testing_labels, no_of_weak_learner, decision_stump_type = args
+        training_features, training_labels, testing_features, testing_labels, no_of_weak_learner, decision_stump_type, display, display_step = args
         return ECOC.__train_classifier_for_one_bit(training_features,
                                                    training_labels,
                                                    testing_features,
                                                    testing_labels,
                                                    no_of_weak_learner,
-                                                   decision_stump_type)
+                                                   decision_stump_type,
+                                                   display,
+                                                   display_step)
 
     @staticmethod
     def __train_classifier_for_one_bit(training_features,
@@ -61,11 +67,14 @@ class ECOC:
                                        testing_features,
                                        testing_labels,
                                        no_of_weak_learner,
-                                       decision_stump_type):
+                                       decision_stump_type,
+                                       display,
+                                       display_step):
 
         classifier = AdaBoost(decision_stump_type)
-        classifier.train(training_features, training_labels, testing_features, testing_labels, no_of_weak_learner, 10,
-                         display=False, calculate_running_error=False)
+        classifier.train(training_features, training_labels, testing_features, testing_labels, no_of_weak_learner,
+                         display_step,
+                         display=display, calculate_running_error=False)
         return classifier
 
     def __convert_labels_to_codes(self, training_labels, testing_labels, no_of_classes):
