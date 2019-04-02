@@ -22,6 +22,9 @@ def demo_ada_boost_with_optimal_decision_stump():
         testing_predictions = ada_boost.predict(testing_features)
         ada_boost.plot_metrics()
         utils.plot_roc_curve(testing_labels, testing_predictions)
+
+        acc, labels, thr = utils.convert_predictions_to_labels(testing_labels, testing_predictions)
+        print("Testing Accuracy:", acc)
     print("+" * 40, "Optimal Decision Stump", "+" * 40)
     print()
 
@@ -54,5 +57,5 @@ def demo_ada_boost_with_random_decision_stump():
 
 if __name__ == '__main__':
     np.random.seed(2)
-    demo_ada_boost_with_random_decision_stump()
-    # demo_ada_boost_with_optimal_decision_stump()
+    # demo_ada_boost_with_random_decision_stump()
+    demo_ada_boost_with_optimal_decision_stump()
