@@ -1,3 +1,5 @@
+import numpy as np
+
 from HW_5.AdaBoost import AdaBoost, DecisionStumpType
 from HW_6 import utils
 
@@ -60,5 +62,6 @@ def demo_ada_boost_on_polluted_spam():
 
 
 if __name__ == '__main__':
+    np.random.seed(11)
     demo_feature_analysis_for_adaboost_on_spam()
     demo_ada_boost_on_polluted_spam()

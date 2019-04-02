@@ -43,7 +43,6 @@ class DecisionStump:
     @staticmethod
     def __get_unique_thresholds_for_feature(features, feature_index):
         all_values = features[:, feature_index]
-        all_values = np.linspace(np.min(all_values), np.max(all_values), 20)
         return np.append(np.unique(all_values), [np.min(all_values) - 1, np.max(all_values) + 1])
 
     def find_optimal_decision_stump(self, features, labels):
