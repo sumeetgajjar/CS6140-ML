@@ -20,6 +20,14 @@ class LinearRegression(object):
         return np.matmul(features, self.weights)
 
 
+class LogisticRegression(LinearRegression):
+
+    def predict(self, features):
+        wx = super().predict(features)
+        g_x = 1 / (1 + np.exp(-wx))
+        return g_x
+
+
 class RidgeRegression(LinearRegression):
 
     def __init__(self, tuning_parameter) -> None:
