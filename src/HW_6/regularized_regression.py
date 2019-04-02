@@ -1,6 +1,8 @@
+import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 from HW_2 import regression
+from HW_2.regression import SGDRidgeLogisticRegression, BGDRidgeLogisticRegression
 from HW_6 import utils
 
 
@@ -59,7 +61,30 @@ def demo_logistic_regression():
     print()
 
 
+def demo_regularized_regression_custom_ridge():
+    data = utils.get_spam_polluted_data()
+
+    training_features = data['training']['features']
+    testing_features = data['testing']['features']
+
+    combined_features = np.concatenate((training_features, testing_features))
+    normalized_features = utils.normalize_data_using_zero_mean_unit_variance(combined_features)
+
+    training_features = normalized_features[:training_features.shape[0]]
+    testing_features = normalized_features[training_features.shape[0]:]
+
+    data['training']['features'] = training_features
+    data['testing']['features'] = testing_features
+
+    print("+" * 40, "Custom Ridge Regression On Spam", "+" * 40)
+    demo_regressor(RegressorWrapper(SGDRidgeLogisticRegression(0.00002, 1200, 10, True)), data)
+    print("+" * 40, "Custom Ridge Regression On Spam", "+" * 40)
+    print()
+
+
 if __name__ == '__main__':
+    np.random.seed(11)
     demo_regularized_regression_ridge()
     demo_regularized_regression_lasso()
     demo_logistic_regression()
+    demo_regularized_regression_custom_ridge()

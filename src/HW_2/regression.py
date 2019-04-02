@@ -141,6 +141,32 @@ class NewtonMethodLogisticRegression(LinearRegression):
         return g_x
 
 
+class SGDRidgeLogisticRegression(LogisticRegression):
+
+    def __init__(self, learning_rate, epochs, regularization_strength, debug=False) -> None:
+        super().__init__()
+        self.debug = debug
+        self.regularization_strength = regularization_strength
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+
+    def train(self, features, labels):
+        self.weights = np.random.random(features.shape[1]) / 10000
+
+        no_of_points = features.shape[0]
+        for i in range(self.epochs):
+            for t in range(no_of_points):
+                x_t = features[t]
+                y_t = labels[t]
+                h_x = self.predict(x_t)
+                diff = h_x - y_t
+                self.weights = self.weights - self.learning_rate * (
+                        (diff * x_t) + (self.regularization_strength * self.weights)) / no_of_points
+
+            if self.debug and i % 20 == 0:
+                print("Step=>{}".format(i), np.transpose(self.weights).tolist())
+
+
 def linear_regression_on_housing_data():
     data = utils.get_housing_data()
     training_features = data['training']['features']
