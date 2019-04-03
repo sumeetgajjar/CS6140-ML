@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 
+from HW_6.image_feature_extraction import get_mnist_images_features
 from HW_7 import utils
 
 
@@ -75,8 +76,19 @@ def demo_sklearn_sigmoid_svm_on_spam():
     print()
 
 
+def demo_svm_on_mnist():
+    print("+" * 40, "Sklearn Multi class SVM", "+" * 40)
+    data = get_mnist_images_features(percentage=20)
+
+    classifier = SVC(C=1, kernel='poly', gamma='scale', degree=1)
+
+    demo_classifier(data, classifier)
+    print("+" * 40, "Sklearn Multi class SVM", "+" * 40)
+
+
 if __name__ == '__main__':
     demo_sklearn_rbf_svm_on_spam()
     demo_sklearn_linear_svm_on_spam()
     demo_sklearn_poly_svm_on_spam()
     demo_sklearn_sigmoid_svm_on_spam()
+    demo_svm_on_mnist()
