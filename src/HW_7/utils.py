@@ -74,3 +74,18 @@ def get_mnist_data():
             'labels': np.array(testing_labels)
         }
     }
+
+
+def normalize_data_using_zero_mean_unit_variance(feature_vectors):
+    total_features = len(feature_vectors[0])
+    i = 0
+    while i < total_features:
+        feature_values = feature_vectors[:, i]
+        mean = feature_values.mean()
+        std = feature_values.std()
+        normalized_values = (feature_values - mean) / std
+        feature_vectors[:, i] = normalized_values
+
+        i += 1
+
+    return feature_vectors

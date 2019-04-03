@@ -10,6 +10,8 @@ from HW_5.ecoc import ECOC
 from HW_6 import utils
 
 BLACK_THRESHOLD = 0
+IMAGE_SHAPE = (28, 28)
+RECTANGLE_COUNT = 200
 
 
 def sample_data(data, percentage):
@@ -86,7 +88,7 @@ def compute_black_pixels_count(black_pixels, start_x, start_y, end_x, end_y):
 
 
 def compute_haar_feature(image, rects):
-    image = image.reshape(28, 28)
+    image = image.reshape(IMAGE_SHAPE)
     black_pixels = find_no_of_black_pixels_along_diagonal_sub_rect(image)
 
     feature = np.ones(2 * rects.shape[0])
@@ -116,7 +118,7 @@ def compute_haar_feature_wrapper(args):
 
 
 def extract_features_from_images(data):
-    rects = sample_sub_rectangles(100, 28, 28)
+    rects = sample_sub_rectangles(RECTANGLE_COUNT, IMAGE_SHAPE[0], IMAGE_SHAPE[1])
 
     for s in ['training', 'testing']:
         images = data[s]['images']
@@ -174,8 +176,8 @@ def demo_haar_feature_extraction_on_mnist_data():
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 200, 10, 50,
-                      DecisionStumpType.RANDOM)
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 50, 10, 50,
+                      DecisionStumpType.OPTIMAL, display=True, display_step=1)
 
     predicted_labels = classifier.predict(training_features)
     print("Training Accuracy:", accuracy_score(training_labels, predicted_labels))

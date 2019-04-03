@@ -1,5 +1,6 @@
+import numpy as np
 from sklearn.metrics import accuracy_score
-from sklearn.svm import NuSVC
+from sklearn.svm import SVC
 
 from HW_7 import utils
 
@@ -26,12 +27,25 @@ def demo_classifier(data, classifier):
 def demo_classifier_wrapper(classifier):
     data = utils.get_spam_data()
     data = utils.k_fold_split(10, data, seed=11, shuffle=True)[0]
+
+    training_features = data['training']['features']
+    testing_features = data['testing']['features']
+
+    combined_features = np.concatenate((training_features, testing_features))
+    normalized_features = utils.normalize_data_using_zero_mean_unit_variance(combined_features)
+
+    training_features = normalized_features[:training_features.shape[0]]
+    testing_features = normalized_features[training_features.shape[0]:]
+
+    data['training']['features'] = training_features
+    data['testing']['features'] = testing_features
+
     demo_classifier(data, classifier)
 
 
 def demo_sklearn_rbf_svm_on_spam():
     print("+" * 40, "Sklearn SVM RBF", "+" * 40)
-    classifier = NuSVC(kernel='rbf', gamma='scale', random_state=11)
+    classifier = SVC(C=1, kernel='rbf', gamma='scale', random_state=11)
     demo_classifier_wrapper(classifier)
     print("+" * 40, "Sklearn SVM RBF", "+" * 40)
     print()
@@ -39,7 +53,7 @@ def demo_sklearn_rbf_svm_on_spam():
 
 def demo_sklearn_linear_svm_on_spam():
     print("+" * 40, "Sklearn SVM Linear", "+" * 40)
-    classifier = NuSVC(kernel='linear', gamma='scale', random_state=11)
+    classifier = SVC(C=1, kernel='linear', gamma='scale', random_state=11)
     demo_classifier_wrapper(classifier)
     print("+" * 40, "Sklearn SVM Linear", "+" * 40)
     print()
@@ -47,7 +61,7 @@ def demo_sklearn_linear_svm_on_spam():
 
 def demo_sklearn_poly_svm_on_spam():
     print("+" * 40, "Sklearn SVM Poly", "+" * 40)
-    classifier = NuSVC(kernel='poly', gamma='scale', degree=2, random_state=11)
+    classifier = SVC(kernel='poly', gamma='scale', degree=2, random_state=11)
     demo_classifier_wrapper(classifier)
     print("+" * 40, "Sklearn SVM Poly", "+" * 40)
     print()
@@ -55,7 +69,7 @@ def demo_sklearn_poly_svm_on_spam():
 
 def demo_sklearn_sigmoid_svm_on_spam():
     print("+" * 40, "Sklearn SVM Sigmoid", "+" * 40)
-    classifier = NuSVC(kernel='sigmoid', gamma='scale', random_state=11)
+    classifier = SVC(C=1, kernel='sigmoid', gamma='scale', random_state=11)
     demo_classifier_wrapper(classifier)
     print("+" * 40, "Sklearn SVM Sigmoid", "+" * 40)
     print()
