@@ -176,7 +176,7 @@ def demo_haar_feature_extraction_on_mnist_data():
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 200, 10, 50,
+    classifier = ECOC(training_features, training_labels, testing_features, testing_labels, 800, 10, 50,
                       DecisionStumpType.RANDOM, display=False, display_step=1)
 
     predicted_labels = classifier.predict(training_features)
