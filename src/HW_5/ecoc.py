@@ -42,7 +42,7 @@ class ECOC:
              self.decision_stump_type, self.display, self.display_step)
             for i in range(no_of_bits)]
 
-        self.classifiers = Parallel(n_jobs=20, verbose=50, backend="threading")(
+        self.classifiers = Parallel(n_jobs=12, verbose=50, backend="threading")(
             map(delayed(ECOC.__train_classifier_for_one_bit_args), arg_list))
 
         self.no_of_bits = no_of_bits
