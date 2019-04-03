@@ -6,9 +6,9 @@ from HW_7.svm_on_spam import demo_classifier
 
 def demo_svm_on_mnist():
     print("+" * 40, "Sklearn Multi class SVM", "+" * 40)
-    data = get_mnist_images_features(percentage=100, overwrite=True)
+    data = get_mnist_images_features(percentage=20)
 
-    classifier = SVC(C=1, kernel='poly', gamma='scale', degree=2)
+    classifier = SVC(C=1, kernel='poly', gamma='scale', degree=1)
 
     demo_classifier(data, classifier)
     print("+" * 40, "Sklearn Multi class SVM", "+" * 40)
