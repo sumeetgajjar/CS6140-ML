@@ -122,8 +122,8 @@ class SVM:
             else:
                 passes = 0
 
-            if self.display and (passes == 1 or passes % self.max_passes == 0):
-                print("Step=>{}".format(passes))
+            if self.display and (passes == 1 or passes % self.display_step == 0):
+                print("Passes=>{}, # of Alpha's Changed=>{}".format(passes, num_alpha_changed))
 
     def predict(self, features):
         pass
