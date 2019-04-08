@@ -12,10 +12,15 @@ class SVM:
         self.b = None
         self.features = None
         self.labels = None
+        self.non_zero_alpha_indices = None
 
     def __f_x(self, x):
-        dot_product = (np.multiply(self.features, x).sum(axis=1))
-        summation = (self.alpha * self.labels * dot_product).sum()
+        features, labels, alpha = self.features[self.non_zero_alpha_indices], \
+                                  self.labels[self.non_zero_alpha_indices], \
+                                  self.alpha[self.non_zero_alpha_indices]
+
+        dot_product = (np.multiply(features, x).sum(axis=1))
+        summation = (alpha * labels * dot_product).sum()
         return summation + self.b
 
     def __calculate_E(self, x, y):
@@ -66,11 +71,14 @@ class SVM:
 
         return b1, b2
 
+    def __update_non_zero_alpha_list(self):
+        self.non_zero_alpha_indices = self.alpha != 0
+
     def train(self, features, labels):
         m = features.shape[0]
 
         self.features, self.labels = features, labels
-        self.alpha, self.b = np.zeros(m), 0
+        self.alpha, self.b, self.non_zero_alpha_indices = np.zeros(m), 0, np.zeros(m, dtype=np.bool)
 
         passes = 1
         while passes <= self.max_passes:
@@ -114,6 +122,8 @@ class SVM:
                     self.alpha[i] = alpha_i
                     self.alpha[j] = alpha_j
 
+                    self.__update_non_zero_alpha_list()
+
                     num_alpha_changed += 1
 
             if num_alpha_changed == 0:
@@ -125,4 +135,4 @@ class SVM:
                 print("Passes=>{}, # of Alpha's Changed=>{}".format(passes, num_alpha_changed))
 
     def predict(self, features):
-        pass
+        return np.array([1 if self.__f_x(feature) >= 0 else -1 for feature in features])
