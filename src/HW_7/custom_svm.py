@@ -37,9 +37,9 @@ class SVM:
     def __compute_L_H(y_i, alpha_i, y_j, alpha_j, C):
 
         if y_i != y_j:
-            return np.max(0, alpha_j - alpha_i), np.min(C, C + alpha_j - alpha_i)
+            return max(0, alpha_j - alpha_i), min(C, C + alpha_j - alpha_i)
         else:
-            return np.max(0, alpha_i + alpha_j - C), np.min(C, alpha_i + alpha_j)
+            return max(0, alpha_i + alpha_j - C), min(C, alpha_i + alpha_j)
 
     @staticmethod
     def __compute_n(x_i, x_j):
