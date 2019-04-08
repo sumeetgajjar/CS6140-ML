@@ -136,3 +136,7 @@ class SVM:
 
     def predict(self, features):
         return np.array([1 if self.__f_x(feature) >= 0 else -1 for feature in features])
+
+
+if __name__ == '__main__':
+    np.random.seed(11)
