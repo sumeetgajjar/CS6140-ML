@@ -3,11 +3,12 @@ import numpy as np
 
 class SVM:
 
-    def __init__(self, C, tol, max_iteration, display=True) -> None:
+    def __init__(self, C, tol, max_passes, max_iterations=100, display=True) -> None:
         self.display = display
         self.C = C
         self.tol = tol
-        self.max_passes = max_iteration
+        self.max_passes = max_passes
+        self.max_iterations = max_iterations
         self.alpha = None
         self.b = None
         self.features = None
@@ -80,8 +81,8 @@ class SVM:
         self.features, self.labels = features, labels
         self.alpha, self.b, self.non_zero_alpha_indices = np.zeros(m), 0, np.zeros(m, dtype=np.bool)
 
-        passes = 1
-        while passes <= self.max_passes:
+        passes, iterations = 1, 1
+        while passes <= self.max_passes and iterations <= self.max_iterations:
             num_alpha_changed = 0
             for i in range(m):
                 x_i, y_i, alpha_i = features[i], labels[i], self.alpha[i]
@@ -132,11 +133,10 @@ class SVM:
                 passes = 0
 
             if self.display:
-                print("Passes=>{}, # of Alpha's Changed=>{}".format(passes, num_alpha_changed))
+                print(
+                    "Iteration=>{}, Passes=>{}, # of Alpha's Changed=>{}".format(iterations, passes, num_alpha_changed))
+
+            iterations += 1
 
     def predict(self, features):
         return np.array([1 if self.__f_x(feature) >= 0 else -1 for feature in features])
-
-
-if __name__ == '__main__':
-    np.random.seed(11)
