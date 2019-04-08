@@ -3,8 +3,7 @@ import numpy as np
 
 class SVM:
 
-    def __init__(self, C, tol, max_iteration, display=True, display_step=1) -> None:
-        self.display_step = display_step
+    def __init__(self, C, tol, max_iteration, display=True) -> None:
         self.display = display
         self.C = C
         self.tol = tol
@@ -122,7 +121,7 @@ class SVM:
             else:
                 passes = 0
 
-            if self.display and (passes == 1 or passes % self.display_step == 0):
+            if self.display:
                 print("Passes=>{}, # of Alpha's Changed=>{}".format(passes, num_alpha_changed))
 
     def predict(self, features):
