@@ -1,9 +1,13 @@
+from itertools import combinations
+
 import numpy as np
+from joblib import Parallel, delayed
 
 
 class SVM:
 
-    def __init__(self, C, tol, max_passes, max_iterations=100, display=True) -> None:
+    def __init__(self, C, tol, max_passes, max_iterations=100, display=True, _id=1) -> None:
+        self._id = _id
         self.display = display
         self.C = C
         self.tol = tol
@@ -134,9 +138,93 @@ class SVM:
 
             if self.display:
                 print(
-                    "Iteration=>{}, Passes=>{}, # of Alpha's Changed=>{}".format(iterations, passes, num_alpha_changed))
+                    "Id=>{}, Iteration=>{}, Passes=>{}, # of Alpha's Changed=>{}".format(self._id, iterations, passes,
+                                                                                         num_alpha_changed))
 
             iterations += 1
 
     def predict(self, features):
         return np.array([1 if self.__f_x(feature) >= 0 else -1 for feature in features])
+
+
+class MultiClassSVM:
+
+    def __init__(self, no_of_classes, C, tol, max_passes, max_iterations=100, display=True, no_of_jobs=1) -> None:
+        self.no_of_jobs = no_of_jobs
+        self.no_of_classes = no_of_classes
+        self.display = display
+        self.max_iterations = max_iterations
+        self.max_passes = max_passes
+        self.tol = tol
+        self.C = C
+        self.classifiers = {}
+
+    def __make_pairs(self, features, labels):
+        pairs = combinations(range(self.no_of_classes), 2)
+
+        data = []
+        for pair in pairs:
+            ix_1 = labels == pair[0]
+            ix_2 = labels == pair[1]
+            f_1, f_2 = features[ix_1], features[ix_2]
+
+            f = np.append(f_1, f_2)
+            l = np.append(np.ones(f_1.shape[0], dtype=np.int) * -1, np.ones(f_2.shape[0], dtype=np.int) * 1)
+
+            temp = {
+                'features': f,
+                'labels': l,
+                'l1': pair[0],
+                'l2': pair[1]
+            }
+
+            data.append(temp)
+
+        return data
+
+    @staticmethod
+    def __train_one_vs_one_classifier_wrapper(args):
+        features, labels, l1, l2, C, tol, max_passes, max_iterations, display, _id = args
+        return MultiClassSVM.__train_one_vs_one_classifier(features, labels, l1, l2,
+                                                           C, tol, max_passes, max_iterations, display, _id)
+
+    @staticmethod
+    def __train_one_vs_one_classifier(features, labels, l1, l2, C, tol, max_passes, max_iterations, display, _id):
+        classifier = SVM(C, tol, max_passes, max_iterations, display, _id)
+        classifier.train(features, labels)
+        return classifier, l1, l2
+
+    def train(self, features, labels):
+        pairs = self.__make_pairs(features, labels)
+
+        arg_list = []
+        for ix, pair in enumerate(pairs):
+            arg = pair['features'], pair['labels'], pair['l1'], pair['l2'], \
+                  self.C, self.tol, self.max_passes, self.max_iterations, self.display, ix
+
+            arg_list.append(arg)
+
+        classifiers = Parallel(n_jobs=self.no_of_jobs, backend="threading", verbose=49)(
+            map(delayed(MultiClassSVM.__train_one_vs_one_classifier_wrapper), arg_list)
+        )
+
+        for classifier, l1, l2 in classifiers:
+            self.classifiers[(l1, l2)] = classifier
+
+    @staticmethod
+    def __predict_wrapper(args):
+        l1, l2, classifier, features = args
+        predictions = classifier.predict(features)
+        predictions[predictions == -1] = l1
+        predictions[predictions == 1] = l2
+        return predictions
+
+    def predict(self, features):
+
+        arg_list = []
+        for k, classifier in self.classifiers:
+            arg_list.append((k[0], k[1], classifier, features))
+
+        predictions = Parallel(n_jobs=self.no_of_jobs, backend="threading", verbose=49)(
+            map(delayed(MultiClassSVM.__predict_wrapper), arg_list)
+        )

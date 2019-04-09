@@ -78,7 +78,12 @@ def demo_custom_svm_on_spam_data():
     print("Testing Accuracy:", np.mean(testing_acc))
 
 
+def demo_custom_svm_on_mnist_data():
+    pass
+
+
 if __name__ == '__main__':
     np.random.seed(11)
     # demo_custom_svm_on_2d_data()
-    demo_custom_svm_on_spam_data()
+    # demo_custom_svm_on_spam_data()
+    demo_custom_svm_on_mnist_data()
