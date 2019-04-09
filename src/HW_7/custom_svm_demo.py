@@ -123,7 +123,7 @@ def demo_custom_svm_on_mnist_data():
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = MultiClassSVM(1, 1e-3, 100, 100, display=True, no_of_jobs=20)
+    classifier = MultiClassSVM(1, 1e-3, 100, 100, display=True, no_of_jobs=10)
     classifier.train(training_features, training_labels)
 
     pred_training_labels = classifier.predict(training_features)
