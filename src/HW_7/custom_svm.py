@@ -1,3 +1,5 @@
+import heapq
+from collections import Counter
 from itertools import combinations
 
 import numpy as np
@@ -149,9 +151,8 @@ class SVM:
 
 class MultiClassSVM:
 
-    def __init__(self, no_of_classes, C, tol, max_passes, max_iterations=100, display=True, no_of_jobs=1) -> None:
+    def __init__(self, C, tol, max_passes, max_iterations=100, display=True, no_of_jobs=1) -> None:
         self.no_of_jobs = no_of_jobs
-        self.no_of_classes = no_of_classes
         self.display = display
         self.max_iterations = max_iterations
         self.max_passes = max_passes
@@ -160,7 +161,7 @@ class MultiClassSVM:
         self.classifiers = {}
 
     def __make_pairs(self, features, labels):
-        pairs = combinations(range(self.no_of_classes), 2)
+        pairs = combinations(range(np.unique(labels).shape[0]), 2)
 
         data = []
         for pair in pairs:
@@ -168,8 +169,11 @@ class MultiClassSVM:
             ix_2 = labels == pair[1]
             f_1, f_2 = features[ix_1], features[ix_2]
 
-            f = np.append(f_1, f_2)
+            f = np.append(f_1, f_2, axis=0)
             l = np.append(np.ones(f_1.shape[0], dtype=np.int) * -1, np.ones(f_2.shape[0], dtype=np.int) * 1)
+
+            if f.shape[0] != l.shape[0]:
+                raise Exception("Feature and Label shape mismatch: F=>{}, L=>{}".format(f.shape, l.shape))
 
             temp = {
                 'features': f,
@@ -217,7 +221,11 @@ class MultiClassSVM:
         predictions = classifier.predict(features)
         predictions[predictions == -1] = l1
         predictions[predictions == 1] = l2
-        return predictions
+        return predictions, l1, l2
+
+    @staticmethod
+    def __get_key(l1, l2):
+        return min(l1, l2), max(l1, l2)
 
     def predict(self, features):
 
@@ -225,6 +233,33 @@ class MultiClassSVM:
         for k, classifier in self.classifiers:
             arg_list.append((k[0], k[1], classifier, features))
 
-        predictions = Parallel(n_jobs=self.no_of_jobs, backend="threading", verbose=49)(
+        results = Parallel(n_jobs=self.no_of_jobs, backend="threading", verbose=49)(
             map(delayed(MultiClassSVM.__predict_wrapper), arg_list)
         )
+
+        result_mapping = {}
+        all_predicted_labels = []
+        for result in results:
+            predictions, l1, l2 = result
+            result_mapping[self.__get_key(l1, l2)] = predictions
+            all_predicted_labels.append(predictions)
+
+        all_predicted_labels = np.array(all_predicted_labels)
+
+        no_of_data_points = features.shape[0]
+        final_predictions = np.ones(no_of_data_points, dtype=np.int) * -1
+        for ix in range(no_of_data_points):
+            current_prediction = all_predicted_labels[:, ix]
+
+            freq = [(-count, label) for label, count in Counter(current_prediction).items()]
+            heapq.heapify(freq)
+
+            c1, l1 = heapq.heappop(freq)
+            c2, l2 = heapq.heappop(freq)
+
+            if c1 == c2:
+                final_predictions[ix] = result_mapping[self.__get_key(l1, l2)][ix]
+            else:
+                final_predictions[ix] = l1
+
+        return final_predictions
