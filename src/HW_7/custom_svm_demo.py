@@ -7,6 +7,7 @@ from pandas import DataFrame
 from sklearn.datasets import make_blobs
 from sklearn.metrics import accuracy_score
 
+from HW_6.image_feature_extraction import get_mnist_images_features
 from HW_7 import utils
 from HW_7.custom_svm import SVM, MultiClassSVM
 
@@ -114,6 +115,25 @@ def demo_custom_svm_on_multiclass_2d_data():
 def demo_custom_svm_on_mnist_data():
     print("+" * 40, "Custom SVM on MNIST Data", "+" * 40)
 
+    data = get_mnist_images_features(percentage=20)
+
+    training_features = data['training']['features']
+    training_labels = data['training']['labels']
+
+    testing_features = data['testing']['features']
+    testing_labels = data['testing']['labels']
+
+    classifier = MultiClassSVM(1, 1e-3, 100, 100, display=True, no_of_jobs=20)
+    classifier.train(training_features, training_labels)
+
+    pred_training_labels = classifier.predict(training_features)
+    acc = accuracy_score(training_labels, pred_training_labels)
+    print("Training Accuracy:", acc)
+
+    pred_testing_labels = classifier.predict(testing_features)
+    acc = accuracy_score(testing_labels, pred_testing_labels)
+    print("Testing Accuracy:", acc)
+
     print("+" * 40, "Custom SVM on MNIST Data", "+" * 40)
 
 
@@ -121,5 +141,5 @@ if __name__ == '__main__':
     np.random.seed(11)
     # demo_custom_svm_on_2d_data()
     # demo_custom_svm_on_spam_data()
-    demo_custom_svm_on_multiclass_2d_data()
-    # demo_custom_svm_on_mnist_data()
+    # demo_custom_svm_on_multiclass_2d_data()
+    demo_custom_svm_on_mnist_data()
