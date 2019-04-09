@@ -219,8 +219,8 @@ class MultiClassSVM:
     def __predict_wrapper(args):
         l1, l2, classifier, features = args
         predictions = classifier.predict(features)
-        predictions[predictions == -1] = l1
         predictions[predictions == 1] = l2
+        predictions[predictions == -1] = l1
         return predictions, l1, l2
 
     @staticmethod
@@ -230,7 +230,7 @@ class MultiClassSVM:
     def predict(self, features):
 
         arg_list = []
-        for k, classifier in self.classifiers:
+        for k, classifier in self.classifiers.items():
             arg_list.append((k[0], k[1], classifier, features))
 
         results = Parallel(n_jobs=self.no_of_jobs, backend="threading", verbose=49)(
