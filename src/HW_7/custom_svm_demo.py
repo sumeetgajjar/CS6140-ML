@@ -1,6 +1,7 @@
 from math import ceil
 
 import numpy as np
+from joblib import Parallel, delayed
 from matplotlib import pyplot
 from pandas import DataFrame
 from sklearn.datasets import make_blobs
@@ -46,6 +47,26 @@ def demo_custom_svm_on_2d_data():
     print()
 
 
+def wrapper_for_spam_data(args):
+    data, _id = args
+
+    training_features = data['training']['features']
+    training_labels = data['training']['labels']
+
+    testing_features = data['testing']['features']
+    testing_labels = data['testing']['labels']
+
+    classifier = SVM(0.01, 1e-2, max_passes=100, max_iterations=100, _id=_id)
+    classifier.train(training_features, training_labels)
+
+    pred_training_labels = classifier.predict(training_features)
+    training_acc = accuracy_score(training_labels, pred_training_labels)
+
+    pred_testing_labels = classifier.predict(testing_features)
+    testing_acc = accuracy_score(testing_labels, pred_testing_labels)
+    return training_acc, testing_acc
+
+
 def demo_custom_svm_on_spam_data():
     data = utils.get_spam_data()
     data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
@@ -54,28 +75,12 @@ def demo_custom_svm_on_spam_data():
     labels[labels == 0] = -1
     data['labels'] = labels
 
-    training_acc = []
-    testing_acc = []
-    for fold in utils.k_fold_split(10, data, seed=11, shuffle=True)[:1]:
-        training_features = fold['training']['features']
-        training_labels = fold['training']['labels']
+    arg_list = [(fold, ix + 1) for ix, fold in enumerate(utils.k_fold_split(10, data, seed=11, shuffle=True))]
+    result = Parallel(n_jobs=10, backend="threading", verbose=49)(map(delayed(wrapper_for_spam_data), arg_list))
+    result = np.array(result)
 
-        testing_features = fold['testing']['features']
-        testing_labels = fold['testing']['labels']
-
-        classifier = SVM(0.01, 1e-2, max_passes=100, max_iterations=100)
-        classifier.train(training_features, training_labels)
-
-        pred_training_labels = classifier.predict(training_features)
-        acc = accuracy_score(training_labels, pred_training_labels)
-        training_acc.append(acc)
-
-        pred_testing_labels = classifier.predict(testing_features)
-        acc = accuracy_score(testing_labels, pred_testing_labels)
-        testing_acc.append(acc)
-
-    print("Training Accuracy:", np.mean(training_acc))
-    print("Testing Accuracy:", np.mean(testing_acc))
+    print("Training Accuracy:", np.mean(result[:, 0]))
+    print("Testing Accuracy:", np.mean(result[:, 1]))
 
 
 def demo_custom_svm_on_mnist_data():
@@ -85,5 +90,5 @@ def demo_custom_svm_on_mnist_data():
 if __name__ == '__main__':
     np.random.seed(11)
     # demo_custom_svm_on_2d_data()
-    # demo_custom_svm_on_spam_data()
-    demo_custom_svm_on_mnist_data()
+    demo_custom_svm_on_spam_data()
+    # demo_custom_svm_on_mnist_data()
