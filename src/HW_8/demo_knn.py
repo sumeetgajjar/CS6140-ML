@@ -5,21 +5,22 @@ from HW_8 import utils
 from HW_8.knn import KNN, Kernel
 
 
-def demo_wrapper(data, kernel, n_jobs=1, verbose=0):
+def demo_wrapper(data, kernel, k_list=(1, 3, 7), n_jobs=1, verbose=0):
     training_features = data['training']['features']
     training_labels = data['training']['labels']
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
-    for k in [1, 3, 7]:
-        classifier = KNN(kernel, training_features, training_labels, n_jobs=n_jobs, verbose=verbose)
 
-        pred_training_labels = classifier.predict(training_features, k)
-        acc = accuracy_score(training_labels, pred_training_labels)
-        print("k=>{}, Training Accuracy:{}".format(k, acc))
+    classifier = KNN(kernel, training_features, training_labels, n_jobs=n_jobs, verbose=verbose)
 
-        pred_testing_labels = classifier.predict(testing_features, k)
-        acc = accuracy_score(testing_labels, pred_testing_labels)
-        print("k=>{}, Testing Accuracy:{}".format(k, acc))
+    pred_training_labels = classifier.predict(training_features, k_list)
+    pred_testing_labels = classifier.predict(testing_features, k_list)
+
+    for ix, k in enumerate(k_list):
+        training_acc = accuracy_score(training_labels, pred_training_labels[:, ix])
+        print("k=>{}, Training Accuracy:{}".format(k, training_acc))
+        testing_acc = accuracy_score(testing_labels, pred_testing_labels[:, ix])
+        print("k=>{}, Testing Accuracy:{}".format(k, testing_acc))
         print()
 
 
@@ -33,8 +34,8 @@ def demo_knn_on_spam_base_data():
 
 def demo_knn_on_mnist_data():
     print("+" * 40, "KNN on MNIST Data with Cosine Kernel", "+" * 40)
-    data = get_mnist_images_features(percentage=2)
-    demo_wrapper(data, Kernel.POLYNOMIAL, n_jobs=1, verbose=1)
+    data = get_mnist_images_features(percentage=10)
+    demo_wrapper(data, Kernel.POLYNOMIAL, n_jobs=10, verbose=1)
     print("+" * 40, "KNN on MNIST Data with Cosine Kernel", "+" * 40)
 
 

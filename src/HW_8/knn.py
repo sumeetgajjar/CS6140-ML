@@ -23,7 +23,7 @@ class SimilarityMeasures:
         a_mag = np.linalg.norm(x)
         b_mag = np.linalg.norm(all_points, axis=1)
         dot_product = np.multiply(x, all_points).sum(axis=1)
-        return 1 - (dot_product / (a_mag * b_mag))
+        return dot_product / (a_mag * b_mag)
 
     @staticmethod
     def gaussian(x, all_points, sigma=2):
@@ -55,7 +55,7 @@ class KNN:
         self.verbose = verbose
 
     def __get_k_closets_points(self, k, distances):
-        if self.kernel == Kernel.EUCLIDEAN or self.kernel == Kernel.COSINE:
+        if self.kernel == Kernel.EUCLIDEAN:
             return np.argsort(distances)[:k]
         else:
             return np.argsort(distances)[::-1][:k]
@@ -67,12 +67,17 @@ class KNN:
         return predicted_label
 
     def __kernel_wrapper(self, args):
-        x, k = args
+        x, k_list = args
         distances = self.kernel_map[self.kernel](x, self.training_features)
-        return self.__get_predicted_label(k, distances)
 
-    def predict(self, features, k):
-        arg_list = [(x, k) for x in features]
+        predicted_labels = []
+        for k in k_list:
+            predicted_labels.append(self.__get_predicted_label(k, distances))
+
+        return predicted_labels
+
+    def predict(self, features, k_list):
+        arg_list = [(x, k_list) for x in features]
         predictions = Parallel(n_jobs=self.n_jobs, backend="threading", verbose=self.verbose)(
             map(delayed(self.__kernel_wrapper), arg_list))
         return np.array(predictions)
