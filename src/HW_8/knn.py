@@ -31,18 +31,22 @@ class KNN:
 class Kernel:
 
     @staticmethod
-    def cosine_kernel(x, all_points):
+    def euclidean(x, points):
+        return np.sqrt(np.square(x - points).sum(axis=1))
+
+    @staticmethod
+    def cosine(x, all_points):
         a_mag = np.linalg.norm(x)
         b_mag = np.linalg.norm(all_points, axis=1)
         dot_product = np.multiply(x, all_points).sum(axis=1)
         return 1 - np.cos(dot_product / (a_mag * b_mag))
 
     @staticmethod
-    def gaussian_kernel(x, all_points, sigma):
+    def gaussian(x, all_points, sigma):
         x_minus_y = np.square(np.linalg.norm(x - all_points, axis=1))
         return np.exp((- x_minus_y / (2 * sigma * sigma)))
 
     @staticmethod
-    def polynomial_kernel(x, all_points, degree):
+    def polynomial(x, all_points, degree):
         dot_product = np.multiply(x, all_points).sum(axis=1)
         return np.power((dot_product + 1), degree)
