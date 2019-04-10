@@ -33,10 +33,12 @@ def demo_knn_on_spam_base_data():
 
 
 def demo_knn_on_mnist_data():
-    print("+" * 40, "KNN on MNIST Data with Cosine Kernel", "+" * 40)
-    data = get_mnist_images_features(percentage=10)
-    demo_wrapper(data, Kernel.POLYNOMIAL, n_jobs=10, verbose=1)
-    print("+" * 40, "KNN on MNIST Data with Cosine Kernel", "+" * 40)
+    for kernel in (Kernel.COSINE, Kernel.GAUSSIAN, Kernel.POLYNOMIAL):
+        print("+" * 40, "KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
+        data = get_mnist_images_features(percentage=20)
+        demo_wrapper(data, kernel, n_jobs=10, verbose=1)
+        print("+" * 40, "KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
+        print()
 
 
 if __name__ == '__main__':
