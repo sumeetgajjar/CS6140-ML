@@ -1,21 +1,17 @@
 from sklearn.metrics import accuracy_score
 
+from HW_6.image_feature_extraction import get_mnist_images_features
 from HW_8 import utils
 from HW_8.knn import KNN, Kernel
 
 
-def demo_knn_on_spam_base_data():
-    print("+" * 40, "KNN on Spambase Data with Euclidean Kernel", "+" * 40)
-    data = utils.get_spam_data()
-    data = utils.k_fold_split(10, data, 11, shuffle=True)[0]
-
+def demo_wrapper(data, kernel, n_jobs=1, verbose=0):
     training_features = data['training']['features']
     training_labels = data['training']['labels']
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
-
     for k in [1, 3, 7]:
-        classifier = KNN(Kernel.euclidean, training_features, training_labels, verbose=0)
+        classifier = KNN(kernel, training_features, training_labels, n_jobs=n_jobs, verbose=verbose)
 
         pred_training_labels = classifier.predict(training_features, k)
         acc = accuracy_score(training_labels, pred_training_labels)
@@ -26,8 +22,22 @@ def demo_knn_on_spam_base_data():
         print("k=>{}, Testing Accuracy:{}".format(k, acc))
         print()
 
+
+def demo_knn_on_spam_base_data():
+    print("+" * 40, "KNN on Spambase Data with Euclidean Kernel", "+" * 40)
+    data = utils.get_spam_data()
+    data = utils.k_fold_split(10, data, 11, shuffle=True)[0]
+    demo_wrapper(data, Kernel.EUCLIDEAN)
     print("+" * 40, "KNN on Spambase Data with Euclidean Kernel", "+" * 40)
 
 
+def demo_knn_on_mnist_data():
+    print("+" * 40, "KNN on MNIST Data with Cosine Kernel", "+" * 40)
+    data = get_mnist_images_features(percentage=2)
+    demo_wrapper(data, Kernel.POLYNOMIAL, n_jobs=1, verbose=1)
+    print("+" * 40, "KNN on MNIST Data with Cosine Kernel", "+" * 40)
+
+
 if __name__ == '__main__':
-    demo_knn_on_spam_base_data()
+    # demo_knn_on_spam_base_data()
+    demo_knn_on_mnist_data()
