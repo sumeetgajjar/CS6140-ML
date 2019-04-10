@@ -96,7 +96,7 @@ def demo_custom_svm_on_multiclass_2d_data():
     training_features, training_labels = X[:partition], y[:partition]
     testing_features, testing_labels = X[partition:], y[partition:]
 
-    classifier = MultiClassSVM(1, 1e-3, 100, 100, display=True, no_of_jobs=6)
+    classifier = MultiClassSVM(1, 1e-3, 60, 60, display=True, no_of_jobs=24)
     classifier.train(training_features, training_labels)
 
     pred_training_labels = classifier.predict(training_features)
@@ -115,7 +115,7 @@ def demo_custom_svm_on_multiclass_2d_data():
 def demo_custom_svm_on_mnist_data():
     print("+" * 40, "Custom SVM on MNIST Data", "+" * 40)
 
-    data = get_mnist_images_features(percentage=20)
+    data = get_mnist_images_features(percentage=2)
 
     training_features = data['training']['features']
     training_labels = data['training']['labels']
@@ -123,7 +123,7 @@ def demo_custom_svm_on_mnist_data():
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = MultiClassSVM(1, 1e-3, 100, 100, display=True, no_of_jobs=10)
+    classifier = MultiClassSVM(0.1, 1e-3, 40, 40, display=True, no_of_jobs=24)
     classifier.train(training_features, training_labels)
 
     pred_training_labels = classifier.predict(training_features)
@@ -141,5 +141,5 @@ if __name__ == '__main__':
     np.random.seed(11)
     # demo_custom_svm_on_2d_data()
     # demo_custom_svm_on_spam_data()
-    # demo_custom_svm_on_multiclass_2d_data()
-    demo_custom_svm_on_mnist_data()
+    demo_custom_svm_on_multiclass_2d_data()
+    # demo_custom_svm_on_mnist_data()
