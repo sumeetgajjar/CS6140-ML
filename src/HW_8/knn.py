@@ -36,6 +36,23 @@ class SimilarityMeasures:
         return np.power((dot_product + 1), degree)
 
 
+class KNNMode(Enum):
+    K_POINTS = 1
+    RADIUS = 2
+
+    @classmethod
+    def is_valid(cls, mode):
+        return mode in KNNMode.__members__
+
+    def get_str(self):
+        if self is KNNMode.K_POINTS:
+            return 'K'
+        elif self is KNNMode.RADIUS:
+            return 'R'
+        else:
+            raise Exception("Unreachable Code")
+
+
 class KNN:
     kernel_map = {
         Kernel.EUCLIDEAN: SimilarityMeasures.euclidean,
@@ -44,25 +61,40 @@ class KNN:
         Kernel.POLYNOMIAL: SimilarityMeasures.polynomial
     }
 
-    def __init__(self, kernel, training_features, training_label, n_jobs=1, verbose=1) -> None:
+    def __init__(self, kernel, training_features, training_label, mode=KNNMode.K_POINTS, n_jobs=1, verbose=1) -> None:
         self.n_jobs = n_jobs
         if kernel not in self.kernel_map:
             raise Exception("Invalid Kernel", kernel)
-
         self.kernel = kernel
+
+        if KNNMode.is_valid(mode):
+            raise Exception("Invalid KNN Mode", mode)
+
+        self.mode = mode
         self.training_features = training_features
         self.training_label = training_label
         self.verbose = verbose
 
-    def __get_k_closets_points(self, k, distances):
+    def __get_k_closet_points(self, k, distances):
         if self.kernel == Kernel.EUCLIDEAN:
             return np.argsort(distances)[:k]
         else:
             return np.argsort(distances)[::-1][:k]
 
+    def __get_closet_points_in_radius(self, r, distances):
+        if self.kernel == Kernel.EUCLIDEAN:
+            return distances <= r
+        else:
+            return distances >= r
+
     def __get_predicted_label(self, k, distances):
-        k_closet_points_indices = self.__get_k_closets_points(k, distances)
-        freq = Counter(self.training_label[k_closet_points_indices])
+        neighbor_indices = None
+        if self.mode == KNNMode.K_POINTS:
+            neighbor_indices = self.__get_k_closet_points(k, distances)
+        elif self.mode == KNNMode.RADIUS:
+            neighbor_indices = self.__get_closet_points_in_radius(k, distances)
+
+        freq = Counter(self.training_label[neighbor_indices])
         predicted_label = max(freq.items(), key=lambda _tuple: _tuple[1])[0]
         return predicted_label
 
