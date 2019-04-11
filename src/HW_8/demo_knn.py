@@ -11,7 +11,7 @@ def demo_wrapper(data, kernel, mode=KNNMode.K_POINTS, k_list=(1, 3, 7), n_jobs=1
     testing_features = data['testing']['features']
     testing_labels = data['testing']['labels']
 
-    classifier = KNN(kernel, training_features, training_labels, n_jobs=n_jobs, verbose=verbose)
+    classifier = KNN(kernel, training_features, training_labels, mode=mode, n_jobs=n_jobs, verbose=verbose)
 
     pred_training_labels = classifier.predict(training_features, k_list)
     pred_testing_labels = classifier.predict(testing_features, k_list)
@@ -45,11 +45,21 @@ def demo_k_points_knn_on_mnist_data():
         print("+" * 40, "K Points KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
         data = get_mnist_images_features(percentage=20)
         demo_wrapper(data, kernel, n_jobs=10, verbose=1)
-        print("+" * 40, "KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
+        print("+" * 40, "K Points KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
         print()
+
+
+def demo_window_knn_on_mnist_data():
+    kernel = Kernel.COSINE
+    print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
+    data = get_mnist_images_features(percentage=10)
+    demo_wrapper(data, kernel, mode=KNNMode.RADIUS, k_list=[0.1, 0.5, 0.8, 0.9, 1], n_jobs=10, verbose=1)
+    print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
+    print()
 
 
 if __name__ == '__main__':
     # demo_k_points_knn_on_spam_base_data()
     # demo_k_points_knn_on_mnist_data()
-    demo_window_knn_on_spam_base_data()
+    # demo_window_knn_on_spam_base_data()
+    demo_window_knn_on_mnist_data()

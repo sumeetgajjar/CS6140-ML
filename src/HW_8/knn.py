@@ -61,7 +61,8 @@ class KNN:
         Kernel.POLYNOMIAL: SimilarityMeasures.polynomial
     }
 
-    def __init__(self, kernel, training_features, training_label, mode=KNNMode.K_POINTS, n_jobs=1, verbose=1) -> None:
+    def __init__(self, kernel, training_features, training_label, mode=KNNMode.K_POINTS, n_jobs=1, verbose=1,
+                 default_class=-1) -> None:
         self.n_jobs = n_jobs
         if kernel not in self.kernel_map:
             raise Exception("Invalid Kernel", kernel)
@@ -74,6 +75,7 @@ class KNN:
         self.training_features = training_features
         self.training_label = training_label
         self.verbose = verbose
+        self.default_class = default_class
 
     def __get_k_closet_points(self, k, distances):
         if self.kernel == Kernel.EUCLIDEAN:
@@ -95,8 +97,11 @@ class KNN:
             neighbor_indices = self.__get_closet_points_in_radius(k, distances)
 
         freq = Counter(self.training_label[neighbor_indices])
-        predicted_label = max(freq.items(), key=lambda _tuple: _tuple[1])[0]
-        return predicted_label
+        if freq:
+            predicted_label = max(freq.items(), key=lambda _tuple: _tuple[1])
+            return predicted_label[0]
+        else:
+            return self.default_class
 
     def __kernel_wrapper(self, args):
         x, k_list = args
