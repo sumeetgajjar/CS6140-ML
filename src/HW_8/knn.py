@@ -61,8 +61,7 @@ class KNN:
         Kernel.POLYNOMIAL: SimilarityMeasures.polynomial
     }
 
-    def __init__(self, kernel, training_features, training_label, mode=KNNMode.K_POINTS, n_jobs=1, verbose=1,
-                 default_class=-1) -> None:
+    def __init__(self, kernel, mode=KNNMode.K_POINTS, n_jobs=1, verbose=1) -> None:
         self.n_jobs = n_jobs
         if kernel not in self.kernel_map:
             raise Exception("Invalid Kernel", kernel)
@@ -72,31 +71,37 @@ class KNN:
             raise Exception("Invalid KNN Mode", mode)
 
         self.mode = mode
-        self.training_features = training_features
-        self.training_label = training_label
         self.verbose = verbose
-        self.default_class = default_class
+        self.default_class = None
 
-    def __get_k_closet_points(self, k, distances):
+    def __get_k_closet_points(self, ix, k, distances):
         if self.kernel == Kernel.EUCLIDEAN:
-            return np.argsort(distances)[:k]
+            neighbors = np.argsort(distances)[:k + 1]
         else:
-            return np.argsort(distances)[::-1][:k]
+            neighbors = np.argsort(distances)[::-1][:k + 1]
 
-    def __get_closet_points_in_radius(self, r, distances):
+        return np.delete(neighbors, np.where(neighbors == ix))
+
+    def __get_closet_points_in_radius(self, ix, r, distances):
         if self.kernel == Kernel.EUCLIDEAN:
-            return distances <= r
+            neighbors = distances <= r
         else:
-            return distances >= r
+            neighbors = distances >= r
 
-    def __get_predicted_label(self, k, distances):
+        neighbors[ix] = False
+        return neighbors
+
+    def __get_neighbor_indices(self, ix, k, distances):
         neighbor_indices = None
         if self.mode == KNNMode.K_POINTS:
-            neighbor_indices = self.__get_k_closet_points(k, distances)
+            neighbor_indices = self.__get_k_closet_points(ix, k, distances)
         elif self.mode == KNNMode.RADIUS:
-            neighbor_indices = self.__get_closet_points_in_radius(k, distances)
+            neighbor_indices = self.__get_closet_points_in_radius(ix, k, distances)
 
-        freq = Counter(self.training_label[neighbor_indices])
+        return neighbor_indices
+
+    def __get_predicted_labels(self, labels, neighbor_indices):
+        freq = Counter(labels[neighbor_indices])
         if freq:
             predicted_label = max(freq.items(), key=lambda _tuple: _tuple[1])
             return predicted_label[0]
@@ -104,17 +109,24 @@ class KNN:
             return self.default_class
 
     def __kernel_wrapper(self, args):
-        x, k_list = args
-        distances = self.kernel_map[self.kernel](x, self.training_features)
+        ix, x, features, labels, k_list = args
+        distances = self.kernel_map[self.kernel](x, features)
 
         predicted_labels = []
         for k in k_list:
-            predicted_labels.append(self.__get_predicted_label(k, distances))
+            neighbor_indices = self.__get_neighbor_indices(ix, k, distances)
+            predicted_label = self.__get_predicted_labels(labels, neighbor_indices)
+            predicted_labels.append(predicted_label)
 
         return predicted_labels
 
-    def predict(self, features, k_list):
-        arg_list = [(x, k_list) for x in features]
+    def __set_default_class(self, labels):
+        counts = np.bincount(labels)
+        self.default_class = np.argmax(counts)
+
+    def predict(self, features, labels, k_list):
+        self.__set_default_class(labels)
+        arg_list = [(ix, x, features, labels, k_list) for ix, x in enumerate(features)]
         predictions = Parallel(n_jobs=self.n_jobs, backend="threading", verbose=self.verbose)(
             map(delayed(self.__kernel_wrapper), arg_list))
         return np.array(predictions)
