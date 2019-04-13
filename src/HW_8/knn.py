@@ -121,8 +121,8 @@ class KNN:
         return predicted_labels
 
     def __set_default_class(self, labels):
-        counts = np.bincount(labels)
-        self.default_class = np.argmax(counts)
+        numbers, counts = np.unique(labels, return_counts=True)
+        self.default_class = numbers[np.argmax(counts)]
 
     def predict(self, features, labels, k_list):
         self.__set_default_class(labels)
