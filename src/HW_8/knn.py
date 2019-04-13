@@ -26,8 +26,8 @@ class SimilarityMeasures:
         return dot_product / (a_mag * b_mag)
 
     @staticmethod
-    def gaussian(x, all_points, sigma=2):
-        x_minus_y = np.square(np.linalg.norm(x - all_points, axis=1))
+    def gaussian(x, all_points, sigma=1):
+        x_minus_y = np.square(x - all_points).sum(axis=1)
         return np.exp((- x_minus_y / (2 * sigma * sigma)))
 
     @staticmethod

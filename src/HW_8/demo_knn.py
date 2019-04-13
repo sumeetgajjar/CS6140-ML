@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.metrics import accuracy_score
 
 from HW_6.image_feature_extraction import get_mnist_images_features
@@ -26,6 +27,7 @@ def demo_k_points_knn_on_spam_base_data():
 
     demo_wrapper(data, Kernel.EUCLIDEAN)
     print("+" * 40, "K Points KNN on Spambase Data with Euclidean Kernel", "+" * 40)
+    print()
 
 
 def demo_window_knn_on_spam_base_data():
@@ -34,13 +36,19 @@ def demo_window_knn_on_spam_base_data():
     data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
     demo_wrapper(data, Kernel.EUCLIDEAN, mode=KNNMode.RADIUS, k_list=[2.5])
     print("+" * 40, "Window KNN on Spambase Data with Euclidean Kernel", "+" * 40)
+    print()
 
 
 def demo_k_points_knn_on_mnist_data():
-    for kernel in (Kernel.COSINE, Kernel.GAUSSIAN, Kernel.POLYNOMIAL):
+    for kernel in [Kernel.COSINE, Kernel.GAUSSIAN, Kernel.POLYNOMIAL]:
         print("+" * 40, "K Points KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
         data = get_mnist_images_features(percentage=20)
-        demo_wrapper(data, kernel, n_jobs=10, verbose=1)
+
+        features = np.append(data['training']['features'], data['testing']['features'], axis=0)
+        labels = np.append(data['training']['labels'], data['testing']['labels'], axis=0)
+        _data = dict({'features': features, 'labels': labels})
+
+        demo_wrapper(_data, kernel, n_jobs=10, verbose=1)
         print("+" * 40, "K Points KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
         print()
 
@@ -49,13 +57,18 @@ def demo_window_knn_on_mnist_data():
     kernel = Kernel.COSINE
     print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
     data = get_mnist_images_features(percentage=20)
-    demo_wrapper(data, kernel, mode=KNNMode.RADIUS, k_list=[0.83], n_jobs=10, verbose=1)
+
+    features = np.append(data['training']['features'], data['testing']['features'], axis=0)
+    labels = np.append(data['training']['labels'], data['testing']['labels'], axis=0)
+    _data = dict({'features': features, 'labels': labels})
+
+    demo_wrapper(_data, kernel, mode=KNNMode.RADIUS, k_list=[0.83], n_jobs=10, verbose=1)
     print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
     print()
 
 
 if __name__ == '__main__':
     # demo_k_points_knn_on_spam_base_data()
-    demo_window_knn_on_spam_base_data()
-    # demo_k_points_knn_on_mnist_data()
+    # demo_window_knn_on_spam_base_data()
+    demo_k_points_knn_on_mnist_data()
     # demo_window_knn_on_mnist_data()
