@@ -11,7 +11,7 @@ from HW_6 import utils
 
 BLACK_THRESHOLD = 0
 IMAGE_SHAPE = (28, 28)
-RECTANGLE_COUNT = 200
+RECTANGLE_COUNT = 100
 
 
 def sample_data(data, percentage):
