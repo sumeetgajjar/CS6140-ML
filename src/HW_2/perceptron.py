@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import accuracy_score
 
 from HW_2 import utils
 
@@ -55,8 +56,10 @@ class Perceptron(object):
         self.normalized_weights = self.weights.ravel()[1:] / (-self.weights[0])
 
     def predict(self, features):
-        y_pred = np.matmul(features, self.weights)
-        y_pred_label = np.fromiter(map(lambda x: 1 if x > 0 else -1, y_pred), dtype=np.int)
+        y_pred = np.matmul(features, self.weights).flatten()
+        # y_pred_label = np.fromiter(map(lambda x: 1 if x > 0 else -1, y_pred), dtype=np.int)
+        y_pred_label = np.ones(features.shape[0])
+        y_pred_label[y_pred < 0] = -1
         return y_pred_label
 
 
@@ -71,6 +74,9 @@ def demo_perceptron():
     perceptron.train(features, labels)
     print("Raw Weights: ", perceptron.weights.ravel().tolist())
     print("Normalized Weights: ", perceptron.normalized_weights.ravel().tolist())
+
+    predicted_labels = perceptron.predict(features)
+    print("Accuracy: ", accuracy_score(labels, predicted_labels))
 
 
 if __name__ == '__main__':
