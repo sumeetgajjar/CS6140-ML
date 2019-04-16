@@ -98,6 +98,9 @@ class KNN:
         elif self.mode == KNNMode.RADIUS:
             neighbor_indices = self.__get_closet_points_in_radius(ix, k, distances)
 
+            if np.all(~neighbor_indices):
+                neighbor_indices = self.__get_k_closet_points(ix, 1, distances)
+
         return neighbor_indices
 
     def __get_predicted_labels(self, labels, neighbor_indices):
@@ -106,6 +109,7 @@ class KNN:
             predicted_label = max(freq.items(), key=lambda _tuple: _tuple[1])
             return predicted_label[0]
         else:
+            print("Default class assigned")
             return self.default_class
 
     def __kernel_wrapper(self, args):

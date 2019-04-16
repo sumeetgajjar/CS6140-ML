@@ -56,19 +56,21 @@ def demo_k_points_knn_on_mnist_data():
 def demo_window_knn_on_mnist_data():
     kernel = Kernel.COSINE
     print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
-    data = get_mnist_images_features(percentage=20)
+    data = get_mnist_images_features(percentage=10, overwrite=True)
 
     features = np.append(data['training']['features'], data['testing']['features'], axis=0)
-    labels = np.append(data['training']['labels'], data['testing']['labels'], axis=0)
+    labels = np.append(data['training']['labels'], data['testing']['labels'])
     _data = dict({'features': features, 'labels': labels})
 
-    demo_wrapper(_data, kernel, mode=KNNMode.RADIUS, k_list=[0.83], n_jobs=10, verbose=1)
+    demo_wrapper(_data, kernel, mode=KNNMode.RADIUS, k_list=[0.9, 0.93, 0.95], n_jobs=10,
+                 verbose=1)
     print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
     print()
 
 
 if __name__ == '__main__':
+    np.random.seed(1)
     # demo_k_points_knn_on_spam_base_data()
     # demo_window_knn_on_spam_base_data()
-    demo_k_points_knn_on_mnist_data()
-    # demo_window_knn_on_mnist_data()
+    # demo_k_points_knn_on_mnist_data()
+    demo_window_knn_on_mnist_data()
