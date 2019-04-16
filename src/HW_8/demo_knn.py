@@ -56,7 +56,7 @@ def demo_k_points_knn_on_mnist_data():
 def demo_window_knn_on_mnist_data():
     kernel = Kernel.COSINE
     print("+" * 40, "WINDOW KNN on MNIST Data with {} Kernel".format(kernel), "+" * 40)
-    data = get_mnist_images_features(percentage=10, overwrite=True)
+    data = get_mnist_images_features(percentage=10)
 
     features = np.append(data['training']['features'], data['testing']['features'], axis=0)
     labels = np.append(data['training']['labels'], data['testing']['labels'])
