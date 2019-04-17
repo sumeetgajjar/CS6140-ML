@@ -138,3 +138,47 @@ class KNN:
         predictions = Parallel(n_jobs=self.n_jobs, backend="threading", verbose=self.verbose)(
             map(delayed(self.__kernel_wrapper), arg_list))
         return np.array(predictions)
+
+
+class KNNUsingKernelDensity:
+
+    def __init__(self, kernel, n_jobs=1, verbose=1) -> None:
+        super().__init__()
+        self.verbose = verbose
+        self.n_jobs = n_jobs
+        self.kernel = kernel
+        self.features = None
+        self.labels = None
+        self.label_freq = None
+        self.p_c = None
+
+    def predict_label(self, iz):
+        predicted_label = None
+        max_p = None
+
+        for label, count in self.label_freq.items():
+            indices = self.labels == label
+            indices[iz] = False
+
+            p_z_c = self.kernel(self.features[iz], self.features[indices]).sum() / count
+            p_c_z = p_z_c * self.p_c[label]
+
+            if p_c_z > max_p:
+                predicted_label = label
+                max_p = p_c_z
+
+        return predicted_label
+
+    def predict(self, features, labels):
+        self.features = features
+        self.labels = labels
+
+        val, counts = np.unique(labels, return_counts=True)
+        self.label_freq = dict(zip(val, counts))
+        self.p_c = {_label: _count / labels.shape[0] for _label, _count in self.label_freq.items()}
+
+        predictions = Parallel(n_jobs=self.n_jobs, backend="threading", verbose=self.verbose)(
+            map(delayed(self.predict_label), range(features.shape[0]))
+        )
+
+        return np.array(predictions)
