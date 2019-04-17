@@ -1,8 +1,4 @@
 import numpy as np
-from sklearn.metrics import accuracy_score
-
-from HW_2 import utils
-from HW_8.knn import SimilarityMeasures
 
 
 class DualPerceptron(object):
@@ -47,23 +43,3 @@ class DualPerceptron(object):
                 y_pred[ix] = -1
 
         return y_pred
-
-
-def demo_perceptron():
-    data = utils.get_perceptron_data()
-    perceptron = DualPerceptron(0.02, SimilarityMeasures.dot_product)
-    features = data['features']
-    features = utils.normalize_data_using_zero_mean_unit_variance(features)
-    features = utils.prepend_one_to_feature_vectors(features)
-
-    labels = data['labels']
-    perceptron.train(features, labels)
-    print("M Counts: ", perceptron.m.tolist())
-
-    predicted_labels = perceptron.predict(features)
-    print("Accuracy: ", accuracy_score(labels, predicted_labels))
-
-
-if __name__ == '__main__':
-    np.random.seed(11)
-    demo_perceptron()
