@@ -53,4 +53,5 @@ def demo_perceptron_on_spiral_data():
 if __name__ == '__main__':
     np.random.seed(11)
     demo_perceptron()
+    # sigma = 0.4
     demo_perceptron_on_spiral_data()

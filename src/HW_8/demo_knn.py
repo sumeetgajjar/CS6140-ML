@@ -75,10 +75,35 @@ def demo_kernel_density_knn_on_spam_base_data():
 
     classifier = KNNUsingKernelDensity(SimilarityMeasures.gaussian)
     predictions = classifier.predict(data['features'], data['labels'])
-
     print("Training Accuracy:{}".format(accuracy_score(data['labels'], predictions)))
 
     print("+" * 40, "Kernel Density KNN on Spambase Data with Gaussian Kernel", "+" * 40)
+    print()
+
+
+def demo_kernel_density_knn_on_mnist_data():
+    print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
+    data = get_mnist_images_features(percentage=10)
+
+    features = np.append(data['training']['features'], data['testing']['features'], axis=0)
+    labels = np.append(data['training']['labels'], data['testing']['labels'])
+    _data = dict({'features': features, 'labels': labels})
+
+    classifier = KNNUsingKernelDensity(SimilarityMeasures.gaussian, n_jobs=10)
+    predictions = classifier.predict(_data['features'], _data['labels'])
+
+    print("Training Accuracy:{}".format(accuracy_score(_data['labels'], predictions)))
+
+    print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
+    print()
+
+    print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
+
+    classifier = KNNUsingKernelDensity(SimilarityMeasures.polynomial, n_jobs=10)
+    predictions = classifier.predict(_data['features'], _data['labels'])
+    print("Training Accuracy:{}".format(accuracy_score(_data['labels'], predictions)))
+
+    print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
     print()
 
 
@@ -88,4 +113,6 @@ if __name__ == '__main__':
     # demo_window_knn_on_spam_base_data()
     # demo_k_points_knn_on_mnist_data()
     # demo_window_knn_on_mnist_data()
-    demo_kernel_density_knn_on_spam_base_data()
+    # demo_kernel_density_knn_on_spam_base_data()
+    # sigma = 4
+    demo_kernel_density_knn_on_mnist_data()
