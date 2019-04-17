@@ -35,6 +35,10 @@ class SimilarityMeasures:
         dot_product = np.multiply(x, all_points).sum(axis=1)
         return np.power((dot_product + 1), degree)
 
+    @staticmethod
+    def dot_product(x, all_points):
+        return np.multiply(x, all_points).sum(axis=1)
+
 
 class KNNMode(Enum):
     K_POINTS = 1
