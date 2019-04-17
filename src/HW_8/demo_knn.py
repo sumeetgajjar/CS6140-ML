@@ -3,6 +3,7 @@ from sklearn.metrics import accuracy_score
 
 from HW_6.image_feature_extraction import get_mnist_images_features
 from HW_8 import utils
+from HW_8.feature_selection import RELIEFFeatureSelection
 from HW_8.knn import KNN, Kernel, KNNMode, KNNUsingKernelDensity, SimilarityMeasures
 
 
@@ -107,6 +108,17 @@ def demo_kernel_density_knn_on_mnist_data():
     print()
 
 
+def demo_relief_feature_selection_algo():
+    print("+" * 40, "RELIEF Feature Selection with KNN on Spambase Data using Euclidean Kernel", "+" * 40)
+    data = utils.get_spam_data()
+    data['features'] = RELIEFFeatureSelection.select_top_features(data['features'], data['labels'], 5)
+    data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
+
+    demo_wrapper(data, Kernel.EUCLIDEAN)
+    print("+" * 40, "RELIEF Feature Selection with KNN on Spambase Data using Euclidean Kernel", "+" * 40)
+    print()
+
+
 if __name__ == '__main__':
     np.random.seed(1)
     # demo_k_points_knn_on_spam_base_data()
@@ -115,4 +127,5 @@ if __name__ == '__main__':
     # demo_window_knn_on_mnist_data()
     # demo_kernel_density_knn_on_spam_base_data()
     # sigma = 4
-    demo_kernel_density_knn_on_mnist_data()
+    # demo_kernel_density_knn_on_mnist_data()
+    demo_relief_feature_selection_algo()
