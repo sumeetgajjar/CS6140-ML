@@ -105,6 +105,20 @@ def get_perceptron_data():
     }
 
 
+def get_perceptron_spiral_data():
+    data = pd.read_csv('%sdata/perceptron/twoSpirals.txt' % ROOT, delimiter='\\s+', header=None)
+    features = np.array(data.iloc[:, :-1])
+    labels = np.array(data.iloc[:, -1])
+
+    if features.shape[0] != labels.shape[0]:
+        raise Exception("Mismatch in Feature Tuples(%d) and Label Tuples(%d)" % (features.size, labels.size))
+
+    return {
+        'features': features,
+        'labels': labels
+    }
+
+
 def prepend_one_to_feature_vectors(features_vectors):
     ones = np.ones((features_vectors.shape[0], 1))
     features_vectors = np.concatenate((ones, features_vectors), axis=1)

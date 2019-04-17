@@ -3,14 +3,13 @@ import numpy as np
 
 class DualPerceptron(object):
 
-    def __init__(self, learning_rate, kernel) -> None:
-        self.learning_rate = learning_rate
+    def __init__(self, kernel) -> None:
         self.m = None
         self.kernel = kernel
         self.training_features = None
         self.training_labels = None
 
-    def train(self, features, labels):
+    def train(self, features, labels, epochs=100, display_step=5):
         self.training_features = features
         self.training_labels = labels
         self.m = np.zeros(features.shape[0])
@@ -26,8 +25,11 @@ class DualPerceptron(object):
                     misclassified_x.append(ix)
 
             misclassified_x = np.array(misclassified_x)
-            print("Iteration: {}, Misclassified Point: {}".format(iteration, misclassified_x.shape[0]))
-            if misclassified_x.size == 0:
+
+            if iteration == 1 or iteration % display_step == 0:
+                print("Iteration: {}, Misclassified Point: {}".format(iteration, misclassified_x.shape[0]))
+
+            if misclassified_x.size == 0 or iteration > epochs:
                 break
 
             iteration += 1
