@@ -26,7 +26,7 @@ class SimilarityMeasures:
         return dot_product / (a_mag * b_mag)
 
     @staticmethod
-    def gaussian(x, all_points, sigma=0.4):
+    def gaussian(x, all_points, sigma=1):
         x_minus_y = np.square(x - all_points).sum(axis=1)
         return np.exp((- x_minus_y / (2 * sigma * sigma)))
 
@@ -154,7 +154,7 @@ class KNNUsingKernelDensity:
 
     def predict_label(self, iz):
         predicted_label = None
-        max_p = None
+        max_p = -1
 
         for label, count in self.label_freq.items():
             indices = self.labels == label

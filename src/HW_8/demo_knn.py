@@ -3,7 +3,7 @@ from sklearn.metrics import accuracy_score
 
 from HW_6.image_feature_extraction import get_mnist_images_features
 from HW_8 import utils
-from HW_8.knn import KNN, Kernel, KNNMode
+from HW_8.knn import KNN, Kernel, KNNMode, KNNUsingKernelDensity, SimilarityMeasures
 
 
 def demo_wrapper(data, kernel, mode=KNNMode.K_POINTS, k_list=(1, 3, 7), n_jobs=1, verbose=0):
@@ -68,9 +68,24 @@ def demo_window_knn_on_mnist_data():
     print()
 
 
+def demo_kernel_density_knn_on_spam_base_data():
+    print("+" * 40, "Kernel Density KNN on Spambase Data with Gaussian Kernel", "+" * 40)
+    data = utils.get_spam_data()
+    data['features'] = utils.normalize_data_using_zero_mean_unit_variance(data['features'])
+
+    classifier = KNNUsingKernelDensity(SimilarityMeasures.gaussian)
+    predictions = classifier.predict(data['features'], data['labels'])
+
+    print("Training Accuracy:{}".format(accuracy_score(data['labels'], predictions)))
+
+    print("+" * 40, "Kernel Density KNN on Spambase Data with Gaussian Kernel", "+" * 40)
+    print()
+
+
 if __name__ == '__main__':
     np.random.seed(1)
     # demo_k_points_knn_on_spam_base_data()
     # demo_window_knn_on_spam_base_data()
     # demo_k_points_knn_on_mnist_data()
-    demo_window_knn_on_mnist_data()
+    # demo_window_knn_on_mnist_data()
+    demo_kernel_density_knn_on_spam_base_data()
