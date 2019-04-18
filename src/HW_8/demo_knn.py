@@ -16,7 +16,7 @@ def demo_wrapper(data, kernel, mode=KNNMode.K_POINTS, k_list=(1, 3, 7), n_jobs=1
 
     for ix, k in enumerate(k_list):
         acc = accuracy_score(labels, pred_labels[:, ix])
-        print("{}=>{}, Training Accuracy:{}".format(mode.get_str(), k, acc))
+        print("{}=>{}, Accuracy:{}".format(mode.get_str(), k, acc))
         print()
 
 
@@ -76,7 +76,7 @@ def demo_kernel_density_knn_on_spam_base_data():
 
     classifier = KNNUsingKernelDensity(SimilarityMeasures.gaussian)
     predictions = classifier.predict(data['features'], data['labels'])
-    print("Training Accuracy:{}".format(accuracy_score(data['labels'], predictions)))
+    print("Accuracy:{}".format(accuracy_score(data['labels'], predictions)))
 
     print("+" * 40, "Kernel Density KNN on Spambase Data with Gaussian Kernel", "+" * 40)
     print()
@@ -93,18 +93,18 @@ def demo_kernel_density_knn_on_mnist_data():
     classifier = KNNUsingKernelDensity(SimilarityMeasures.gaussian, n_jobs=10)
     predictions = classifier.predict(_data['features'], _data['labels'])
 
-    print("Training Accuracy:{}".format(accuracy_score(_data['labels'], predictions)))
+    print("Accuracy:{}".format(accuracy_score(_data['labels'], predictions)))
 
     print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
     print()
 
-    print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
+    print("+" * 40, "Kernel Density KNN on MNIST Data with Polynomial Kernel", "+" * 40)
 
     classifier = KNNUsingKernelDensity(SimilarityMeasures.polynomial, n_jobs=10)
     predictions = classifier.predict(_data['features'], _data['labels'])
-    print("Training Accuracy:{}".format(accuracy_score(_data['labels'], predictions)))
+    print("Accuracy:{}".format(accuracy_score(_data['labels'], predictions)))
 
-    print("+" * 40, "Kernel Density KNN on MNIST Data with Gaussian Kernel", "+" * 40)
+    print("+" * 40, "Kernel Density KNN on MNIST Data with Polynomial Kernel", "+" * 40)
     print()
 
 
@@ -125,6 +125,7 @@ if __name__ == '__main__':
     # demo_window_knn_on_spam_base_data()
     # demo_k_points_knn_on_mnist_data()
     # demo_window_knn_on_mnist_data()
+    # sigma = 0.4
     # demo_kernel_density_knn_on_spam_base_data()
     # sigma = 4
     # demo_kernel_density_knn_on_mnist_data()
