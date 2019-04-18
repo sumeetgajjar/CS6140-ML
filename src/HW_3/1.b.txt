@@ -1,0 +1,13 @@
+The encoding part of training algorithm tries to perform the dimensionality reduction by encoding the input into fewer number of bits.
+This step happens in the encoder component of the neural network.
+
+Similarly the decoding part of the algorithm tries to perform the reverse of dimensionality reduction.
+It tries to reconstruct the original input from the encoded form.
+
+So as a whole the network takes the input and output the input.
+The idea of encoder and decoder comes into play when after completing the training of the entire network,
+we break and group the network into 2 parts.
+
+And hence,
+input layer + hidden layer becomes the encoder
+hidden layer + output layer becomes the decoder.
