@@ -76,7 +76,7 @@ y_test2 = tran.fit_transform(y_test)
 groups = create_groups(np.append(y_train2, y_test2, axis=0))
 groups = [[0, 1, 2], [3, 4, 5, 9], [6, 7, 8]]
 
-print(groups)
+print("Groups=>", groups)
 
 group_classifier = GroupClassifier(groups, 10)
 group_classifier.fit(x_train, y_train2)
