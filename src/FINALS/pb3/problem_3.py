@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import sparse
+from sklearn.covariance import EmpiricalCovariance
 from sklearn.datasets import load_svmlight_file
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -70,6 +71,22 @@ class GroupClassifier:
         return predictions
 
 
+def create_groups():
+    cov = EmpiricalCovariance().fit(y_train2)
+    a = np.array(cov.covariance_)
+
+    print(a)
+    for i in range(10):
+
+        temp = []
+        for j in range(10):
+
+            if i != j and j > i and a[i][j] >= 0.003:
+                temp.append(j)
+
+        print(i, " => ", temp)
+
+
 tran = MultiLabelBinarizer()
 x_train, y_train = load_svmlight_file("all_train.csv", multilabel=True, n_features=30, zero_based=True)
 x_test, y_test = load_svmlight_file("all_test.csv", multilabel=True, n_features=30, zero_based=True)
@@ -80,19 +97,7 @@ y_train2 = sparse.csr_matrix(y_train2)
 y_test2 = tran.fit_transform(y_test)
 y_test2 = sparse.csr_matrix(y_test2)
 
-# cov = EmpiricalCovariance().fit(y_train2)
-# a = np.array(cov.covariance_)
 
-# print(a)
-# for i in range(10):
-#
-#     temp = []
-#     for j in range(10):
-#
-#         if i != j and j > i and a[i][j] >= 0.003:
-#             temp.append(j)
-#
-#     print(i, " => ", temp)
 
 groups = [[1, 2, 3, 4], [5, 6, 10], [7, 8, 9]]
 group_classifier = GroupClassifier(groups, 10)

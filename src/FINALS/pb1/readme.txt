@@ -9,8 +9,8 @@ Using this method I achieved accuracy of 88.29 percent using the given LogisticR
 
 
 I used K nearest neighbors classifier to directly classify the noisy data.
-The reason for using KNN is that it's a local classifier. And even though the testing data contains the noise,
-it will have equa
+The reason for using KNN is that it's a local classifier. And even though the testing data contains the noise, the
+majority of the content in the features is not noise knn will select the correct labels.
 
 
 Output:
