@@ -28,10 +28,13 @@ clf = LogisticRegression(solver='lbfgs', multi_class='multinomial', random_state
 clf.fit(x_train, y_train)
 
 y_pred = clf.predict(x_test_noisy)
+print("+" * 400)
 print("Testing Accuracy using Logistic Regression before cleaning:", accuracy_score(y_test, y_pred))
+print("+" * 400)
+print()
 
 # start of auto encoder for denoising the data
-INPUT_NODES = 784
+INPUT_NODES = x_train.shape[1]
 HIDDEN_NODES = 144
 
 inputs = Input(shape=(INPUT_NODES,))  # 28*28 flatten
@@ -58,10 +61,16 @@ x_test_noisy_processed = autoencoder.predict(x_test_noisy)
 # end of auto encoder for denoising the data
 y_test_pred = clf.predict(x_test_noisy_processed)
 
+print("+" * 400)
 print("Testing Accuracy using Logistic Regression after cleaning:", accuracy_score(y_test, y_test_pred))
+print("+" * 400)
+print()
 
 clf = KNeighborsClassifier(n_neighbors=3, n_jobs=12)
 clf.fit(x_train, y_train)
 
 y_pred = clf.predict(x_test_noisy)
+print("+" * 400)
 print("Testing Accuracy using K nearest neighbors without cleaning:", accuracy_score(y_test, y_pred))
+print("+" * 400)
+print()
