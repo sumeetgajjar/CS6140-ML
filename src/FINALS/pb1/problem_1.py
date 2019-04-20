@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from sklearn.linear_model import LogisticRegression
@@ -31,12 +30,14 @@ y_pred = clf.predict(x_test_noisy)
 print("Testing Accuracy using Logistic Regression before cleaning:", accuracy_score(y_test, y_pred))
 
 # start of auto encoder for denoising the data
+INPUT_NODES = 784
+HIDDEN_NODES = 144
 
-inputs = Input(shape=(784,))  # 28*28 flatten
-enc_fc = Dense(144, activation='sigmoid')  # to 32 data points
+inputs = Input(shape=(INPUT_NODES,))  # 28*28 flatten
+enc_fc = Dense(HIDDEN_NODES, activation='sigmoid')  # to 32 data points
 encoded = enc_fc(inputs)
 
-dec_fc = Dense(784, activation='sigmoid')  # to 784 data points
+dec_fc = Dense(INPUT_NODES, activation='sigmoid')  # to 784 data points
 decoded = dec_fc(encoded)
 
 autoencoder = Model(inputs, decoded)
@@ -52,25 +53,6 @@ autoencoder.fit(x_train_1_noisy, x_train_1,  # data and label are the same
                 batch_size=1000, validation_data=(x_valid_1_noisy, x_valid_1))
 
 x_test_noisy_processed = autoencoder.predict(x_test_noisy)
-
-# Plot figures
-n = 10
-for i in range(n):
-    i = i + 1
-    # display original
-    ax = plt.subplot(2, n, i)
-    plt.imshow(x_test_noisy[i - 1].reshape(28, 28))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-
-    # display noisy
-    ax = plt.subplot(2, n, i + n)
-    plt.imshow(x_train_1_noisy[i - 1].reshape(28, 28))
-    plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-plt.show()
 
 # end of auto encoder for denoising the data
 y_test_pred = clf.predict(x_test_noisy_processed)
