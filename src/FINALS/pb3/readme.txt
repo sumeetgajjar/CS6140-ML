@@ -9,7 +9,7 @@ This did not yield me a good output, I did not have time to figure out why.
 I am not bundling the code for the above method since it did not work out.
 
 
-Another technique that I used was by using empirical method.
+Another technique that I used was by using empirical covariance of labels.
 I got the covariance between the labels and then grouped the labels which had high correlations.
 I consider this a group and use this as input to my group classifier.
 
