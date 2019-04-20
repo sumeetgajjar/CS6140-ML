@@ -7,7 +7,7 @@ from tensorflow.python.keras import Input, Model
 from tensorflow.python.keras.layers import Dense
 
 
-def add_noise(x, noise_factor=0.2):
+def add_noise(x, noise_factor):
     x = x + np.random.randn(*x.shape) * noise_factor
     x = x.clip(0., 1.)
     return x
