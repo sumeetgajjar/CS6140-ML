@@ -46,38 +46,45 @@ class GroupClassifier:
         return predictions
 
 
-def create_groups():
-    cov = EmpiricalCovariance().fit(y_train2)
-    a = np.array(cov.covariance_)
+def create_groups(y):
+    label_covariance = EmpiricalCovariance().fit(y).covariance_
 
-    print(a)
+    _groups = []
+    _groups_set = set()
     for i in range(10):
-
-        temp = []
+        _group = []
         for j in range(10):
 
-            if i != j and j > i and a[i][j] >= 0.003:
-                temp.append(j)
+            if i != j and j > i and label_covariance[i][j] >= 0.0024:
+                _group.append(j)
 
-        print(i, " => ", temp)
+        _group_string = str(sorted(_group))
+
+        if _group and _group_string not in _groups_set:
+            _groups.append(_group)
+            _groups_set.add(_group_string)
+    return _groups
 
 
-tran = MultiLabelBinarizer()
 x_train, y_train = load_svmlight_file("all_train.csv", multilabel=True, n_features=30, zero_based=True)
 x_test, y_test = load_svmlight_file("all_test.csv", multilabel=True, n_features=30, zero_based=True)
 
+tran = MultiLabelBinarizer()
 y_train2 = tran.fit_transform(y_train)
-
 y_test2 = tran.fit_transform(y_test)
 
+groups = create_groups(np.append(y_train2, y_test2, axis=0))
 groups = [[0, 1, 2], [3, 4, 5, 9], [6, 7, 8]]
+
+print(groups)
+
 group_classifier = GroupClassifier(groups, 10)
 group_classifier.fit(x_train, y_train2)
 
 y_train_pred = group_classifier.predict(x_train)
-training_f1, training_acc = get_instance_f1(y_train_pred, y_train)
-print("train\t" + str(training_f1) + "\t" + str(training_acc))
+tr1, tr2 = get_instance_f1(y_train_pred, y_train)
+print("train\t" + str(tr1) + "\t" + str(tr2))
 
 y_test_pred = group_classifier.predict(x_test)
-testing_f1, testing_acc = get_instance_f1(y_test_pred, y_test)
-print("test\t" + str(testing_f1) + "\t" + str(testing_acc))
+test1, test2 = get_instance_f1(y_test_pred, y_test)
+print("test\t" + str(test1) + "\t" + str(test2))
