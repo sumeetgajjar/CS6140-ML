@@ -83,6 +83,7 @@ group_classifier.fit(x_train, y_train2)
 
 y_train_pred = group_classifier.predict(x_train)
 tr1, tr2 = get_instance_f1(y_train_pred, y_train)
+print("datasets\taccuracy\tf1")
 print("train\t" + str(tr1) + "\t" + str(tr2))
 
 y_test_pred = group_classifier.predict(x_test)
