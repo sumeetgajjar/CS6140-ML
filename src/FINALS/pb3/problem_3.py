@@ -6,29 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MultiLabelBinarizer
 from skmultilearn.problem_transform import LabelPowerset
 
-
-def get_instance_f1(pred, ground_file):
-    c = 0
-    count = 0
-    sum_f1 = 0
-    sum_acc = 0
-    for l1, l2 in zip(pred, (ground_file)):
-        l2 = [int(i) for i in l2]
-        if l1 == l2:
-            sum_acc += 1
-        c += 1
-        count += 1
-        overlap = 0
-        for i in l1:
-            if i in l2:
-                overlap += 1
-
-        if (len(l1) + len(l2)) == 0:
-            sum_f1 += 1
-        else:
-            sum_f1 += (2 * overlap) / (len(l1) + len(l2))
-
-    return sum_f1 / count, sum_acc / count
+from FINALS.pb3.trainBR import get_instance_f1
 
 
 class GroupClassifier:
@@ -45,17 +23,14 @@ class GroupClassifier:
 
             temp_labels = np.zeros((features.shape[0], self.no_of_labels), dtype=int)
             for ix, x in enumerate(features):
-
                 for _label in label_group:
-                    if _label in labels[ix]:
-                        temp_labels[ix, _label] = 1
+                    temp_labels[ix, _label] = labels[ix, _label]
 
             _classifier = LabelPowerset(LogisticRegression(solver='liblinear', penalty="l1", C=0.1,
                                                            multi_class='ovr',
                                                            tol=1e-8, max_iter=100))
 
             _classifier.fit(features, sparse.csr_matrix(temp_labels))
-
             self.classifiers.append(_classifier)
 
     def predict(self, features):
@@ -92,16 +67,12 @@ x_train, y_train = load_svmlight_file("all_train.csv", multilabel=True, n_featur
 x_test, y_test = load_svmlight_file("all_test.csv", multilabel=True, n_features=30, zero_based=True)
 
 y_train2 = tran.fit_transform(y_train)
-y_train2 = sparse.csr_matrix(y_train2)
 
 y_test2 = tran.fit_transform(y_test)
-y_test2 = sparse.csr_matrix(y_test2)
 
-
-
-groups = [[1, 2, 3, 4], [5, 6, 10], [7, 8, 9]]
+groups = [[0, 1, 2], [3, 4, 5, 9], [6, 7, 8]]
 group_classifier = GroupClassifier(groups, 10)
-group_classifier.fit(x_train, y_train)
+group_classifier.fit(x_train, y_train2)
 
 y_train_pred = group_classifier.predict(x_train)
 training_f1, training_acc = get_instance_f1(y_train_pred, y_train)
