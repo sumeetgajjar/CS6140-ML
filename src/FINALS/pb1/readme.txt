@@ -1,4 +1,4 @@
-I used auto encoder to denoise the testing data set.
+I used an auto encoder to denoise the testing data set.
 
 For training the data autoencoder,
 I added noise to the x_train data to generate x_train_noisy dataset.
