@@ -6,3 +6,12 @@ I use EM algo to fit the given data to the Bernoulli mixture.
 
 The mixture coefficients are the probabilities of selecting the problem.
 And the bernoulli co-efficient q_k is the probability of student solving a problem.
+
+
+Output:
+
+/home/sumeet/PycharmProjects/CS6140-ML/venv/bin/python /home/sumeet/PycharmProjects/CS6140-ML/src/FINALS/pb2/problem_2.py
+Problem assignment Probability [0.10316772 0.27088829 0.62594399]
+Probability of solving each problem [0.89293323 0.14467846 0.50114134]
+
+Process finished with exit code 0
