@@ -3,6 +3,7 @@ import tensorflow as tf
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 from tensorflow.python.keras import Input, Model
 from tensorflow.python.keras.layers import Dense
 
@@ -58,3 +59,9 @@ x_test_noisy_processed = autoencoder.predict(x_test_noisy)
 y_test_pred = clf.predict(x_test_noisy_processed)
 
 print("Testing Accuracy using Logistic Regression after cleaning:", accuracy_score(y_test, y_test_pred))
+
+clf = KNeighborsClassifier(n_neighbors=3, n_jobs=12)
+clf.fit(x_train, y_train)
+
+y_pred = clf.predict(x_test_noisy)
+print("Testing Accuracy using K nearest neighbors without cleaning:", accuracy_score(y_test, y_pred))
